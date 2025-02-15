@@ -1,20 +1,88 @@
-﻿// Bagauov_OOP_LR2.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
-//
+﻿#include <iostream>
+#include <string>
 
-#include <iostream>
+using namespace std;
 
-int main()
-{
-    std::cout << "Hello World!\n";
+
+class Animal {
+
+private:
+    int height;
+    int weight;
+    string color;
+
+public:
+    Animal() : height(0), weight(0), color("white") {
+        printf("Вызван базовый конструктор класса Animal \n");
+    }
+    Animal(int height, int weight, string color) : height(height), weight(weight), color(color) {
+        printf("Вызван конструктор с параметрами класса Animal \n");
+    }
+    Animal(const Animal& Animal_copy) : height(Animal_copy.height), weight(Animal_copy.weight), color(Animal_copy.color) {
+        printf("Вызван конструктор копирования класса Animal \n");
+    }
+    ~Animal() {
+        printf("Вызван деструктор класса Animal \n");
+    }
+
+    
+    int height_getter() {
+        return height;
+    }
+    int weight_getter() {
+        return weight;
+    }
+    string color_getter() {
+        return color;
+    }
+    void height_setter(int h) {
+        if (height > 0) {
+            height = h;
+        }
+        else
+            printf("Рост не может быть отрицательным!\n");
+    }
+    void weight_setter(int w) {
+        if (weight > 0) {
+            weight = w;
+        }
+        else
+            printf("Вес не может быть отрицательным!\n");
+    }
+    void color_setter(string c) {
+        color = c;
+    }
+
+    void sound();
+};
+
+void Animal::sound() {
+    printf("*silence*...\n");
 }
 
-// Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"
-// Отладка программы: F5 или меню "Отладка" > "Запустить отладку"
+int main() {
+    setlocale(LC_ALL, "RU");
+    Animal wtf_animal;
+    Animal cat(1, 3, "black");
+    Animal cat2 = cat;
 
-// Советы по началу работы 
-//   1. В окне обозревателя решений можно добавлять файлы и управлять ими.
-//   2. В окне Team Explorer можно подключиться к системе управления версиями.
-//   3. В окне "Выходные данные" можно просматривать выходные данные сборки и другие сообщения.
-//   4. В окне "Список ошибок" можно просматривать ошибки.
-//   5. Последовательно выберите пункты меню "Проект" > "Добавить новый элемент", чтобы создать файлы кода, или "Проект" > "Добавить существующий элемент", чтобы добавить в проект существующие файлы кода.
-//   6. Чтобы снова открыть этот проект позже, выберите пункты меню "Файл" > "Открыть" > "Проект" и выберите SLN-файл.
+
+    Animal* cat_pointer = new Animal;
+    Animal* sobaka_pointer = new Animal(1, 4, "green");
+    Animal* popugai_pointer = new Animal(cat);
+
+    cat.sound();
+    string sobaka_color = sobaka_pointer->color_getter();
+    cout << sobaka_color << endl;
+    
+    popugai_pointer->sound();
+
+    delete cat_pointer;
+    delete sobaka_pointer;
+    delete popugai_pointer;
+    
+
+    
+}
+
+
