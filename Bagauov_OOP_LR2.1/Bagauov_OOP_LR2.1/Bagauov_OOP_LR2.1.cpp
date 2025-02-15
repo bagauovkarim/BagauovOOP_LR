@@ -13,9 +13,9 @@ public:
         printf("Вызван конструктор по умолчанию класса CPU \n");
     }
     CPU(int core, string model): core(core), model(model) {
-        printf("Вызва конструктор с параметрами класса CPU \n");
+        printf("Вызван конструктор с параметрами класса CPU \n");
     }
-    CPU(CPU& cpu_copy): core(cpu_copy.core), model(cpu_copy.model) {
+    CPU(const CPU& cpu_copy): core(cpu_copy.core), model(cpu_copy.model) {
         printf("Вызван конструктор копирования класса CPU \n");
     }
     ~CPU() {
@@ -40,7 +40,7 @@ public:
         return model;
     }
 
-    void print_info() {
+    virtual void print_info() {
         
         printf("Model info: %d\n", core);
         
@@ -49,26 +49,65 @@ public:
 
 };
 
+class Server {
+private:
+    CPU cpu1;
+    CPU cpu2;
+public:
+    Server() : cpu1(0, ""), cpu2(0, "") {
+        printf("Вызван конструктор по умолчанию класса Server \n");
+    }
+    Server(int core1, int core2, string model1, string model2) : cpu1(core1, model1), cpu2(core2, model2) {
+        printf("Вызван конструктор с параметрами класса Server \n");
+    }
+    Server(const Server& server_copy) : cpu1(server_copy.cpu1), cpu2(server_copy.cpu2) {
+        printf("Вызван конструктор копирования класса Server \n");
+    }
+    ~Server() {
+        printf("Вызван деструктор  класса Server \n");
+    }
 
+    void server_setter(int c1, string m1, int c2, string m2) {
+        cpu1.core_setter(c1);
+        cpu1.model_setter(m1);
+        cpu2.core_setter(c2);
+        cpu2.model_setter(m2);
+
+    }
+
+    /*CPU server_getter() {
+        return cpu1;
+    }*/
+    void print_info() {
+        printf("Server info: \n");
+        cpu1.print_info();
+        cpu2.print_info();
+
+        
+    }
+};
 
 
 
 int main() {
     setlocale(LC_ALL, "RU");
 
-    CPU model1;
-    CPU model2(6, "Intel");
-    CPU model3 = model2;
+   
 
-    CPU* model4 = new CPU();
-    CPU* model5 = new CPU(8, "AMD");
-    CPU* model6 = new CPU(*model5);
+    Server server1;
+    Server server2(1, 4, "Intel1", "Intel2");
+    Server server3 = server2;
 
-    model2.print_info();
+    Server* server4 = new Server();
+    Server* server5 = new Server(5, 6, "Intel3", "Intel4");
+    Server* server6 = new Server(*server5);
 
-    delete model4;
-    delete model5;
-    delete model6;
+    server2.print_info();
+    
+    delete server4;
+    delete server5;
+    delete server6;
+
 
 }
 
