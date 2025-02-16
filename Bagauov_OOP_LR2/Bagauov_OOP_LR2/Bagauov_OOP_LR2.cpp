@@ -4,6 +4,9 @@
 using namespace std;
 
 
+
+
+
 class Animal {
 
 private:
@@ -79,25 +82,25 @@ public:
         printf("Вызван деструктор класса Bird\n");
     }
 
-    void height_setter(int h) {
-        if (height_getter() > 0 and height_getter() < 10) {
+    void height_setter_forBird(int h) {
+        if (h > 0 && h < 10) {
             height_setter(h);
         }
         else
             printf("Рост не может быть отрицательным и больше 10!\n");
     }
-    void weight_setter(int w) {
-        if (weight_getter() > 0 and weight_getter() < 10) {
+    void weight_setter_forBird(int w) {
+        if (w > 0 && w < 10) {
             weight_setter(w);
         }
         else
             printf("Вес не может быть отрицательным!\n");
     }
-    void height_setter(string c) {
+    void color_setter_forBird(string c) {
         color_setter(c);
     }
 
-    void setter_fly_speed(int f) {
+    void setter_fly_speed_forBird(int f) {
         if (fly_speed > 0) {
             fly_speed = f;
         }
@@ -105,15 +108,15 @@ public:
             printf("Скорость птицы не может быть отрицательной! \n");
     }
 
-    void setter_egg_color(string e) {
+    void setter_egg_color_forBird(string e) {
         egg_color = e;
     }
 
-    int getter_fly_speed() {
+    int getter_fly_speed_forBird() {
         return fly_speed;
     }
 
-    string getter_egg_color() {
+    string getter_egg_color_forBird() {
         return egg_color;
     }
 
@@ -147,6 +150,7 @@ int main() {
     Bird vorona(4, 1, "black", 10, "yellow");
     Bird sinica = vorona;
 
+    
     
     Bird* penguin_pointer = new Bird;
     Bird* sokol_pointer = new Bird(10, 1, "white", 100, "black");
