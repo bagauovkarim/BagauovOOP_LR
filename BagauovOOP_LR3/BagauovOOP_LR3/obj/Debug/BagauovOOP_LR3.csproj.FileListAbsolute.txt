@@ -1,0 +1,10 @@
+C:\Users\Karim\source\repos\BagauovOOP_LR3\BagauovOOP_LR3\bin\Debug\BagauovOOP_LR3.exe.config
+C:\Users\Karim\source\repos\BagauovOOP_LR3\BagauovOOP_LR3\bin\Debug\BagauovOOP_LR3.exe
+C:\Users\Karim\source\repos\BagauovOOP_LR3\BagauovOOP_LR3\bin\Debug\BagauovOOP_LR3.pdb
+C:\Users\Karim\source\repos\BagauovOOP_LR3\BagauovOOP_LR3\obj\Debug\BagauovOOP_LR3.csproj.AssemblyReference.cache
+C:\Users\Karim\source\repos\BagauovOOP_LR3\BagauovOOP_LR3\obj\Debug\BagauovOOP_LR3.Form1.resources
+C:\Users\Karim\source\repos\BagauovOOP_LR3\BagauovOOP_LR3\obj\Debug\BagauovOOP_LR3.Properties.Resources.resources
+C:\Users\Karim\source\repos\BagauovOOP_LR3\BagauovOOP_LR3\obj\Debug\BagauovOOP_LR3.csproj.GenerateResource.cache
+C:\Users\Karim\source\repos\BagauovOOP_LR3\BagauovOOP_LR3\obj\Debug\BagauovOOP_LR3.csproj.CoreCompileInputs.cache
+C:\Users\Karim\source\repos\BagauovOOP_LR3\BagauovOOP_LR3\obj\Debug\BagauovOOP_LR3.exe
+C:\Users\Karim\source\repos\BagauovOOP_LR3\BagauovOOP_LR3\obj\Debug\BagauovOOP_LR3.pdb
