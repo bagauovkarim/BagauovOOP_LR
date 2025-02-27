@@ -7,11 +7,11 @@
       "RelativeMoniker": "D:0:0:{4C2929E5-EA40-4DD1-B23D-2F066A289AF3}|BagauovOOP_LR3\\BagauovOOP_LR3.csproj|solutionrelative:bagauovoop_lr3\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4C2929E5-EA40-4DD1-B23D-2F066A289AF3}|BagauovOOP_LR3\\BagauovOOP_LR3.csproj|c:\\users\\karim\\source\\repos\\bagauovoop_lr3\\bagauovoop_lr3\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "AbsoluteMoniker": "D:0:0:{4C2929E5-EA40-4DD1-B23D-2F066A289AF3}|BagauovOOP_LR3\\BagauovOOP_LR3.csproj|C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR3\\bagauovoop_lr3\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{4C2929E5-EA40-4DD1-B23D-2F066A289AF3}|BagauovOOP_LR3\\BagauovOOP_LR3.csproj|solutionrelative:bagauovoop_lr3\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4C2929E5-EA40-4DD1-B23D-2F066A289AF3}|BagauovOOP_LR3\\BagauovOOP_LR3.csproj|c:\\users\\karim\\source\\repos\\bagauovoop_lr3\\bagauovoop_lr3\\form1.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{4C2929E5-EA40-4DD1-B23D-2F066A289AF3}|BagauovOOP_LR3\\BagauovOOP_LR3.csproj|C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR3\\bagauovoop_lr3\\form1.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{4C2929E5-EA40-4DD1-B23D-2F066A289AF3}|BagauovOOP_LR3\\BagauovOOP_LR3.csproj|solutionrelative:bagauovoop_lr3\\form1.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -25,6 +25,10 @@
           "SelectedChildIndex": 2,
           "Children": [
             {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{eefa5220-e298-11d0-8f78-00a0c9110057}"
+            },
+            {
               "$type": "Document",
               "DocumentIndex": 2,
               "Title": "Form1.Designer.cs",
@@ -34,12 +38,7 @@
               "RelativeToolTip": "BagauovOOP_LR3\\Form1.Designer.cs",
               "ViewState": "AgIAAAIAAAAAAAAAAAAxwA4AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-26T14:06:02.428Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{eefa5220-e298-11d0-8f78-00a0c9110057}"
+              "WhenOpened": "2025-02-26T14:06:02.428Z"
             },
             {
               "$type": "Document",
@@ -49,7 +48,7 @@
               "RelativeDocumentMoniker": "BagauovOOP_LR3\\Form1.cs",
               "ToolTip": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR3\\BagauovOOP_LR3\\Form1.cs",
               "RelativeToolTip": "BagauovOOP_LR3\\Form1.cs",
-              "ViewState": "AgIAACsAAAAAAAAAAAAcwEIAAAAeAAAAAAAAAA==",
+              "ViewState": "AgIAAEoAAAAAAAAAAAAiwF4AAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-02-26T12:31:56.151Z",
               "EditorCaption": ""
@@ -63,8 +62,7 @@
               "ToolTip": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR3\\BagauovOOP_LR3\\Form1.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
               "RelativeToolTip": "BagauovOOP_LR3\\Form1.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-26T12:27:18.861Z",
-              "EditorCaption": " [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]"
+              "WhenOpened": "2025-02-26T12:27:18.861Z"
             }
           ]
         }

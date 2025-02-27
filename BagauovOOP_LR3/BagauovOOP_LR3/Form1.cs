@@ -1,86 +1,107 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace BagauovOOP_LR3
 {
     public partial class Form1 : Form
     {
-        private CircleContainer circles = new CircleContainer();
+        private List<CCircle> circles = new List<CCircle>(); // Список для хранения кругов
         private Point startPoint;
         private bool selecting = false;
         private Rectangle selectionRectangle;
         private List<CCircle> selectedCircles = new List<CCircle>();
         private bool mouseMoved = false;
+        
 
         public Form1()
         {
             InitializeComponent();
             this.Paint += new PaintEventHandler(Form1_Paint_DrawCircles);
             this.MouseClick += new MouseEventHandler(Form1_MouseClick);
-            this.MouseDown += new MouseEventHandler(Form1_MouseDown);  
-            this.MouseMove += new MouseEventHandler(Form1_MouseMove);  
+            this.MouseDown += new MouseEventHandler(Form1_MouseDown);
+            this.MouseMove += new MouseEventHandler(Form1_MouseMove);
             this.MouseUp += new MouseEventHandler(Form1_MouseUp);
-
+            this.KeyDown += new KeyEventHandler(Form1_KeyDown);
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
         }
-
 
         private void Form1_Paint_DrawCircles(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
 
-
-            List<CCircle> allCircles = circles.GetAll();
-
-
-            for (int i = 0; i < allCircles.Count; i++)
+            // Рисуем все круги
+            for (int i = 0; i < circles.Count; i++)
             {
-                CCircle circle = allCircles[i];
+                CCircle circle = circles[i];
 
-                float penThickness = 3.0f; 
-                Pen bluePen = new Pen(Color.Blue, penThickness);
-                
                 if (selectedCircles.Contains(circle))
                 {
-                    g.DrawEllipse(bluePen, circle.X - circle.Radius, circle.Y - circle.Radius, circle.Radius * 2, circle.Radius * 2);
+                    // Рисуем выделенный круг
+                    g.DrawEllipse(Pens.Blue, circle.X - circle.Radius, circle.Y - circle.Radius, circle.Radius * 2, circle.Radius * 2);
                     g.FillEllipse(Brushes.Red, circle.X - circle.Radius, circle.Y - circle.Radius, circle.Radius * 2, circle.Radius * 2);
-
                 }
                 else
+                {
+                    // Рисуем обычный круг
                     g.DrawEllipse(Pens.Black, circle.X - circle.Radius, circle.Y - circle.Radius, circle.Radius * 2, circle.Radius * 2);
+                }
             }
+
+            // Рисуем прямоугольник выделения, если идет выделение
             if (selecting)
             {
-                Pen pen = new Pen(Color.Blue);
-                e.Graphics.DrawRectangle(pen, selectionRectangle);
-                pen.Dispose();
-
+                using (Pen pen = new Pen(Color.Blue))
+                {
+                    e.Graphics.DrawRectangle(pen, selectionRectangle);
+                }
             }
-
         }
-
 
         private void Form1_MouseClick(object sender, MouseEventArgs e)
         {
-            if (selecting)
+            bool clickedOnCircle = false;
+
+
+            for (int i = 0; i < circles.Count; i++)
             {
-                selectedCircles.Clear();
-                circles.Add(new CCircle(e.X, e.Y, 30));
-                this.Invalidate();
+                CCircle circle = circles[i];
+                Rectangle circleBounds = new Rectangle(circle.X - circle.Radius, circle.Y - circle.Radius, circle.Radius * 2, circle.Radius * 2);
+
+                if (circleBounds.Contains(e.Location))
+                {
+                    clickedOnCircle = true;
+
+                    if (!selectedCircles.Contains(circle))
+                    {
+                        selectedCircles.Add(circle);
+                    }
+
+
+                break;
+                }
+
             }
+            if (!clickedOnCircle && !mouseMoved)
+            {
+                if (selectedCircles.Count == 0)
+                {
+                    circles.Add(new CCircle(e.X, e.Y, 30));
+                    
+                }
+                
+                
+                selectedCircles.Clear();
+                
 
 
+
+            }
+            this.Invalidate();
         }
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
@@ -89,7 +110,7 @@ namespace BagauovOOP_LR3
             {
                 startPoint = e.Location;
                 selecting = true;
-                mouseMoved = false;
+                mouseMoved = false; // Сбрасываем флаг mouseMoved
                 selectionRectangle = new Rectangle(startPoint.X, startPoint.Y, 0, 0);
                 this.Invalidate();
             }
@@ -99,14 +120,13 @@ namespace BagauovOOP_LR3
         {
             if (selecting)
             {
-                mouseMoved = true;
+                mouseMoved = true; // Устанавливаем флаг mouseMoved при движении мыши
                 int x = Math.Min(startPoint.X, e.X);
                 int y = Math.Min(startPoint.Y, e.Y);
                 int width = Math.Abs(e.X - startPoint.X);
                 int height = Math.Abs(e.Y - startPoint.Y);
 
                 selectionRectangle = new Rectangle(x, y, width, height);
-                
                 this.Invalidate();
             }
         }
@@ -116,27 +136,24 @@ namespace BagauovOOP_LR3
             if (e.Button == MouseButtons.Left)
             {
                 selecting = false;
-                if (!mouseMoved)
-                {
-                    circles.Add(new CCircle(e.X, e.Y, 30));
-                }
-                else
-                {
-                    selectedCircles.Clear();
-                    List<CCircle> allCircles = circles.GetAll();
-                    for (int i = 0; i < allCircles.Count(); i++)
-                    {
-                        CCircle circle = allCircles[i];
 
+                if (mouseMoved)
+                {
+                    // Выделяем круги, которые пересекаются с прямоугольником выделения
+                    selectedCircles.Clear();
+                    for (int i = 0; i < circles.Count; i++)
+                    {
+                        CCircle circle = circles[i];
                         Rectangle circleBounds = new Rectangle(circle.X - circle.Radius, circle.Y - circle.Radius, circle.Radius * 2, circle.Radius * 2);
                         if (selectionRectangle.IntersectsWith(circleBounds))
                         {
                             selectedCircles.Add(circle);
-
                         }
                     }
                 }
 
+                // Сбрасываем флаг mouseMoved
+                mouseMoved = false;
 
                 this.Invalidate();
             }
@@ -146,12 +163,20 @@ namespace BagauovOOP_LR3
         {
             if (e.KeyCode == Keys.Delete)
             {
-                circles.GetAll().Clear();
+                // Удаляем выделенные круг
+                for (int i = 0; i < selectedCircles.Count; i++)
+                {
+                    circles.Remove(selectedCircles[i]);
+                }
+
+                // Очищаем список выделенных кругов
+                selectedCircles.Clear();
+
+                // Перерисовываем форму
                 this.Invalidate();
             }
         }
     }
-
 
     public class CCircle
     {
@@ -165,23 +190,5 @@ namespace BagauovOOP_LR3
             Y = y;
             Radius = radius;
         }
-    }
-
-
-    public class CircleContainer
-    {
-        private List<CCircle> circles = new List<CCircle>();
-
-        public void Add(CCircle circle)
-        {
-            circles.Add(circle);
-        }
-
-        public List<CCircle> GetAll()
-        {
-            return circles;
-        }
-
-       
     }
 }
