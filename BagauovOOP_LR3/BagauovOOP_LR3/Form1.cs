@@ -13,7 +13,7 @@ namespace BagauovOOP_LR3
         private Rectangle selectionRectangle;
         private List<CCircle> selectedCircles = new List<CCircle>();
         private bool mouseMoved = false;
-        
+        private bool ctrlPressed = false; // Флаг для отслеживания состояния клавиши Ctrl
 
         public Form1()
         {
@@ -24,6 +24,7 @@ namespace BagauovOOP_LR3
             this.MouseMove += new MouseEventHandler(Form1_MouseMove);
             this.MouseUp += new MouseEventHandler(Form1_MouseUp);
             this.KeyDown += new KeyEventHandler(Form1_KeyDown);
+            this.KeyUp += new KeyEventHandler(Form1_KeyUp); // Добавляем обработчик отпускания клавиш
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -55,17 +56,15 @@ namespace BagauovOOP_LR3
             // Рисуем прямоугольник выделения, если идет выделение
             if (selecting)
             {
-                using (Pen pen = new Pen(Color.Blue))
-                {
-                    e.Graphics.DrawRectangle(pen, selectionRectangle);
-                }
+                Pen pen = new Pen(Color.Blue); // Создаем объект Pen
+                e.Graphics.DrawRectangle(pen, selectionRectangle); // Рисуем прямоугольник
+                pen.Dispose(); // Освобождаем ресурсы вручную
             }
         }
 
         private void Form1_MouseClick(object sender, MouseEventArgs e)
         {
             bool clickedOnCircle = false;
-
 
             for (int i = 0; i < circles.Count; i++)
             {
@@ -80,33 +79,25 @@ namespace BagauovOOP_LR3
                     {
                         selectedCircles.Add(circle);
                     }
-
-
-                break;
+                    break; 
                 }
-
             }
+
             if (!clickedOnCircle && !mouseMoved)
             {
                 if (selectedCircles.Count == 0)
                 {
                     circles.Add(new CCircle(e.X, e.Y, 30));
-                    
                 }
-                
-                
                 selectedCircles.Clear();
-                
-
-
-
             }
+
             this.Invalidate();
         }
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Left && ctrlPressed) // Проверяем, что зажат Ctrl
             {
                 startPoint = e.Location;
                 selecting = true;
@@ -118,7 +109,7 @@ namespace BagauovOOP_LR3
 
         private void Form1_MouseMove(object sender, MouseEventArgs e)
         {
-            if (selecting)
+            if (selecting && ctrlPressed)
             {
                 mouseMoved = true; // Устанавливаем флаг mouseMoved при движении мыши
                 int x = Math.Min(startPoint.X, e.X);
@@ -129,6 +120,7 @@ namespace BagauovOOP_LR3
                 selectionRectangle = new Rectangle(x, y, width, height);
                 this.Invalidate();
             }
+
         }
 
         private void Form1_MouseUp(object sender, MouseEventArgs e)
@@ -163,7 +155,7 @@ namespace BagauovOOP_LR3
         {
             if (e.KeyCode == Keys.Delete)
             {
-                // Удаляем выделенные круг
+                // Удаляем выделенные круги
                 for (int i = 0; i < selectedCircles.Count; i++)
                 {
                     circles.Remove(selectedCircles[i]);
@@ -174,6 +166,26 @@ namespace BagauovOOP_LR3
 
                 // Перерисовываем форму
                 this.Invalidate();
+            }
+
+            if (e.KeyCode == Keys.ControlKey)
+            {
+                ctrlPressed = true; // Устанавливаем флаг, что Ctrl нажат
+            }
+        }
+
+        private void Form1_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.ControlKey)
+            {
+                ctrlPressed = false; // Сбрасываем флаг, когда Ctrl отпущен
+
+                if (selecting) // Если выделение активно
+                {
+                    selecting = false; // Останавливаем выделение
+                    selectionRectangle = Rectangle.Empty; // Удаляем прямоугольник
+                    this.Invalidate(); // Перерисовываем форму
+                }
             }
         }
     }
