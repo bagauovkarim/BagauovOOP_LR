@@ -7,13 +7,12 @@ namespace BagauovOOP_LR3
 {
     public partial class Form1 : Form
     {
-        private List<CCircle> circles = new List<CCircle>(); // Список для хранения кругов
+        private CircleContainer circles = new CircleContainer(); // Контейнер для кругов
         private Point startPoint;
         private bool selecting = false;
         private Rectangle selectionRectangle;
-        private List<CCircle> selectedCircles = new List<CCircle>();
         private bool mouseMoved = false;
-        private bool ctrlPressed = false; // Флаг для отслеживания состояния клавиши Ctrl
+        private bool ctrlPressed = false;
 
         public Form1()
         {
@@ -24,41 +23,26 @@ namespace BagauovOOP_LR3
             this.MouseMove += new MouseEventHandler(Form1_MouseMove);
             this.MouseUp += new MouseEventHandler(Form1_MouseUp);
             this.KeyDown += new KeyEventHandler(Form1_KeyDown);
-            this.KeyUp += new KeyEventHandler(Form1_KeyUp); // Добавляем обработчик отпускания клавиш
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
+            this.KeyUp += new KeyEventHandler(Form1_KeyUp);
         }
 
         private void Form1_Paint_DrawCircles(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
 
-            // Рисуем все круги
-            for (int i = 0; i < circles.Count; i++)
+            // Рисуем все круги через контейнер
+            for (circles.First(); !circles.EOL(); circles.Next())
             {
-                CCircle circle = circles[i];
-
-                if (selectedCircles.Contains(circle))
-                {
-                    // Рисуем выделенный круг
-                    g.DrawEllipse(Pens.Blue, circle.X - circle.Radius, circle.Y - circle.Radius, circle.Radius * 2, circle.Radius * 2);
-                    g.FillEllipse(Brushes.Red, circle.X - circle.Radius, circle.Y - circle.Radius, circle.Radius * 2, circle.Radius * 2);
-                }
-                else
-                {
-                    // Рисуем обычный круг
-                    g.DrawEllipse(Pens.Black, circle.X - circle.Radius, circle.Y - circle.Radius, circle.Radius * 2, circle.Radius * 2);
-                }
+                circles.GetCurrent().Draw(g);
             }
 
             // Рисуем прямоугольник выделения, если идет выделение
             if (selecting)
             {
-                Pen pen = new Pen(Color.Blue); // Создаем объект Pen
-                e.Graphics.DrawRectangle(pen, selectionRectangle); // Рисуем прямоугольник
-                pen.Dispose(); // Освобождаем ресурсы вручную
+                Pen pen = new Pen(Color.Blue);
+                e.Graphics.DrawRectangle(pen, selectionRectangle);
+                pen.Dispose();
+                
             }
         }
 
@@ -66,30 +50,40 @@ namespace BagauovOOP_LR3
         {
             bool clickedOnCircle = false;
 
-            for (int i = 0; i < circles.Count; i++)
+            // Проверяем, попал ли клик на какой-либо круг
+            for (circles.First(); !circles.EOL(); circles.Next())
             {
-                CCircle circle = circles[i];
-                Rectangle circleBounds = new Rectangle(circle.X - circle.Radius, circle.Y - circle.Radius, circle.Radius * 2, circle.Radius * 2);
-
-                if (circleBounds.Contains(e.Location))
+                if (circles.GetCurrent().Contains(e.Location))
                 {
                     clickedOnCircle = true;
 
-                    if (!selectedCircles.Contains(circle))
+                    // Если круг уже выделен, снимаем выделение
+                    if (circles.GetCurrent().IsCircleSelected())
                     {
-                        selectedCircles.Add(circle);
+                        circles.GetCurrent().Deselect();
                     }
-                    break; 
+                    else
+                    {
+                        // Если круг не выделен, выделяем его
+                        circles.GetCurrent().Select();
+                    }
+                    break;
                 }
             }
 
+            // Если клик был вне всех кругов и мышь не двигалась
             if (!clickedOnCircle && !mouseMoved)
             {
-                if (selectedCircles.Count == 0)
+                if (circles.GetSelectedCount() == 0)
                 {
-                    circles.Add(new CCircle(e.X, e.Y, 30));
+                    // Добавляем новый круг (не выделенный)
+                    CCircle newCircle = new CCircle(e.X, e.Y, 30);
+                    circles.Add(newCircle);
                 }
-                selectedCircles.Clear();
+                else
+                {
+                    circles.DeselectAll(); // Снимаем выделение со всех кругов
+                }
             }
 
             this.Invalidate();
@@ -97,11 +91,11 @@ namespace BagauovOOP_LR3
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left && ctrlPressed) // Проверяем, что зажат Ctrl
+            if (e.Button == MouseButtons.Left && ctrlPressed)
             {
                 startPoint = e.Location;
                 selecting = true;
-                mouseMoved = false; // Сбрасываем флаг mouseMoved
+                mouseMoved = false;
                 selectionRectangle = new Rectangle(startPoint.X, startPoint.Y, 0, 0);
                 this.Invalidate();
             }
@@ -111,7 +105,7 @@ namespace BagauovOOP_LR3
         {
             if (selecting && ctrlPressed)
             {
-                mouseMoved = true; // Устанавливаем флаг mouseMoved при движении мыши
+                mouseMoved = true;
                 int x = Math.Min(startPoint.X, e.X);
                 int y = Math.Min(startPoint.Y, e.Y);
                 int width = Math.Abs(e.X - startPoint.X);
@@ -120,7 +114,6 @@ namespace BagauovOOP_LR3
                 selectionRectangle = new Rectangle(x, y, width, height);
                 this.Invalidate();
             }
-
         }
 
         private void Form1_MouseUp(object sender, MouseEventArgs e)
@@ -131,22 +124,10 @@ namespace BagauovOOP_LR3
 
                 if (mouseMoved)
                 {
-                    // Выделяем круги, которые пересекаются с прямоугольником выделения
-                    selectedCircles.Clear();
-                    for (int i = 0; i < circles.Count; i++)
-                    {
-                        CCircle circle = circles[i];
-                        Rectangle circleBounds = new Rectangle(circle.X - circle.Radius, circle.Y - circle.Radius, circle.Radius * 2, circle.Radius * 2);
-                        if (selectionRectangle.IntersectsWith(circleBounds))
-                        {
-                            selectedCircles.Add(circle);
-                        }
-                    }
+                    circles.SelectCirclesInRectangle(selectionRectangle); // Выделяем круги в прямоугольнике
                 }
 
-                // Сбрасываем флаг mouseMoved
                 mouseMoved = false;
-
                 this.Invalidate();
             }
         }
@@ -155,22 +136,13 @@ namespace BagauovOOP_LR3
         {
             if (e.KeyCode == Keys.Delete)
             {
-                // Удаляем выделенные круги
-                for (int i = 0; i < selectedCircles.Count; i++)
-                {
-                    circles.Remove(selectedCircles[i]);
-                }
-
-                // Очищаем список выделенных кругов
-                selectedCircles.Clear();
-
-                // Перерисовываем форму
+                circles.RemoveSelected(); // Удаляем выделенные круги
                 this.Invalidate();
             }
 
             if (e.KeyCode == Keys.ControlKey)
             {
-                ctrlPressed = true; // Устанавливаем флаг, что Ctrl нажат
+                ctrlPressed = true;
             }
         }
 
@@ -178,29 +150,158 @@ namespace BagauovOOP_LR3
         {
             if (e.KeyCode == Keys.ControlKey)
             {
-                ctrlPressed = false; // Сбрасываем флаг, когда Ctrl отпущен
+                ctrlPressed = false;
 
-                if (selecting) // Если выделение активно
+                if (selecting)
                 {
-                    selecting = false; // Останавливаем выделение
-                    selectionRectangle = Rectangle.Empty; // Удаляем прямоугольник
-                    this.Invalidate(); // Перерисовываем форму
+                    selecting = false;
+                    selectionRectangle = Rectangle.Empty;
+                    this.Invalidate();
                 }
             }
         }
     }
 
+    // Класс-контейнер для кругов
+    public class CircleContainer
+    {
+        private List<CCircle> circles = new List<CCircle>();
+        private int currentIndex = 0;
+
+        // Добавление круга
+        public void Add(CCircle circle)
+        {
+            circles.Add(circle);
+        }
+
+        // Удаление выделенных кругов
+        public void RemoveSelected()
+        {
+            for (int i = circles.Count - 1; i >= 0; i--)
+            {
+                if (circles[i].IsCircleSelected())
+                {
+                    circles.RemoveAt(i);
+                }
+            }
+        }
+
+        // Снятие выделения со всех кругов
+        public void DeselectAll()
+        {
+            for (int i = 0; i < circles.Count; i++)
+            {
+                circles[i].Deselect();
+            }
+        }
+
+        // Выделение кругов, пересекающихся с прямоугольником
+        public void SelectCirclesInRectangle(Rectangle rect)
+        {
+            for (int i = 0; i < circles.Count; i++)
+            {
+                if (circles[i].IntersectsWith(rect))
+                {
+                    circles[i].Select();
+                }
+            }
+        }
+
+        // Получение количества выделенных кругов
+        public int GetSelectedCount()
+        {
+            int count = 0;
+            for (int i = 0; i < circles.Count; i++)
+            {
+                if (circles[i].IsCircleSelected())
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        // Методы для итерации по кругам
+        public void First()
+        {
+            currentIndex = 0;
+        }
+
+        public bool EOL()
+        {
+            return currentIndex >= circles.Count;
+        }
+
+        public void Next()
+        {
+            currentIndex++;
+        }
+
+        public CCircle GetCurrent()
+        {
+            return circles[currentIndex];
+        }
+    }
+
+    // Класс круга
     public class CCircle
     {
         public int X { get; set; }
         public int Y { get; set; }
         public int Radius { get; private set; }
+        private bool isCircleSelected;
 
         public CCircle(int x, int y, int radius)
         {
             X = x;
             Y = y;
             Radius = radius;
+            isCircleSelected = false;
+        }
+
+        // Проверка, попадает ли точка в круг
+        public bool Contains(Point point)
+        {
+            int dx = point.X - X;
+            int dy = point.Y - Y;
+            return dx * dx + dy * dy <= Radius * Radius;
+        }
+
+        // Рисование круга
+        public void Draw(Graphics g)
+        {
+            if (isCircleSelected)
+            {
+                g.DrawEllipse(Pens.Blue, X - Radius, Y - Radius, Radius * 2, Radius * 2);
+                g.FillEllipse(Brushes.Red, X - Radius, Y - Radius, Radius * 2, Radius * 2);
+            }
+            else
+            {
+                g.DrawEllipse(Pens.Black, X - Radius, Y - Radius, Radius * 2, Radius * 2);
+            }
+        }
+
+        // Проверка пересечения с прямоугольником
+        public bool IntersectsWith(Rectangle rect)
+        {
+            Rectangle circleBounds = new Rectangle(X - Radius, Y - Radius, Radius * 2, Radius * 2);
+            return rect.IntersectsWith(circleBounds);
+        }
+
+        // Управление выделением
+        public void Select()
+        {
+            isCircleSelected = true;
+        }
+
+        public void Deselect()
+        {
+            isCircleSelected = false;
+        }
+
+        public bool IsCircleSelected()
+        {
+            return isCircleSelected;
         }
     }
 }
