@@ -16,5 +16,7 @@ namespace BagauovOOP_LR3._1
         {
             InitializeComponent();
         }
+
+        
     }
 }
