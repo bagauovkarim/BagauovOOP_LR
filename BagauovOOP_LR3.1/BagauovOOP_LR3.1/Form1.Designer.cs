@@ -107,6 +107,8 @@
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(153, 31);
             this.textBox1.TabIndex = 5;
+            this.textBox1.Text = "0";
+            this.textBox1.TextChanged += new System.EventHandler(this.textBox_TextChanged);
             // 
             // textBox2
             // 
@@ -115,6 +117,8 @@
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(153, 31);
             this.textBox2.TabIndex = 6;
+            this.textBox2.Text = "0";
+            this.textBox2.TextChanged += new System.EventHandler(this.textBox_TextChanged);
             // 
             // textBox3
             // 
@@ -123,6 +127,8 @@
             this.textBox3.Name = "textBox3";
             this.textBox3.Size = new System.Drawing.Size(153, 31);
             this.textBox3.TabIndex = 7;
+            this.textBox3.Text = "0";
+            this.textBox3.TextChanged += new System.EventHandler(this.textBox_TextChanged);
             // 
             // numericUpDown1
             // 
@@ -131,6 +137,7 @@
             this.numericUpDown1.Name = "numericUpDown1";
             this.numericUpDown1.Size = new System.Drawing.Size(157, 31);
             this.numericUpDown1.TabIndex = 8;
+            this.numericUpDown1.ValueChanged += new System.EventHandler(this.numericUpDown_ValueChanged);
             // 
             // numericUpDown2
             // 
@@ -139,6 +146,7 @@
             this.numericUpDown2.Name = "numericUpDown2";
             this.numericUpDown2.Size = new System.Drawing.Size(157, 31);
             this.numericUpDown2.TabIndex = 9;
+            this.numericUpDown2.ValueChanged += new System.EventHandler(this.numericUpDown_ValueChanged);
             // 
             // numericUpDown3
             // 
@@ -147,27 +155,34 @@
             this.numericUpDown3.Name = "numericUpDown3";
             this.numericUpDown3.Size = new System.Drawing.Size(157, 31);
             this.numericUpDown3.TabIndex = 10;
+            this.numericUpDown3.ValueChanged += new System.EventHandler(this.numericUpDown_ValueChanged);
             // 
             // trackBar1
             // 
             this.trackBar1.Location = new System.Drawing.Point(39, 330);
+            this.trackBar1.Maximum = 100;
             this.trackBar1.Name = "trackBar1";
             this.trackBar1.Size = new System.Drawing.Size(157, 45);
             this.trackBar1.TabIndex = 11;
+            this.trackBar1.Scroll += new System.EventHandler(this.trackBar_Scroll);
             // 
             // trackBar2
             // 
             this.trackBar2.Location = new System.Drawing.Point(294, 330);
+            this.trackBar2.Maximum = 100;
             this.trackBar2.Name = "trackBar2";
             this.trackBar2.Size = new System.Drawing.Size(157, 45);
             this.trackBar2.TabIndex = 12;
+            this.trackBar2.Scroll += new System.EventHandler(this.trackBar_Scroll);
             // 
             // trackBar3
             // 
             this.trackBar3.Location = new System.Drawing.Point(578, 330);
+            this.trackBar3.Maximum = 100;
             this.trackBar3.Name = "trackBar3";
             this.trackBar3.Size = new System.Drawing.Size(157, 45);
             this.trackBar3.TabIndex = 13;
+            this.trackBar3.Scroll += new System.EventHandler(this.trackBar_Scroll);
             // 
             // Form1
             // 
@@ -190,6 +205,8 @@
             this.Controls.Add(this.label1);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
+            this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown3)).EndInit();
