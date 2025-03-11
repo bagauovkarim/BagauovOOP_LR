@@ -18,61 +18,30 @@ namespace BagauovOOP_LR3._1
         // Обработчик изменения значения в numericUpDown
         private void numericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            if (sender == numericUpDown1)
+            if (sender is NumericUpDown numericUpDown)
             {
-                model.setA((int)numericUpDown1.Value);
-                UpdateAllControls(); // Обновляем все элементы управления
-            }
-            else if (sender == numericUpDown2)
-            {
-                model.setB((int)numericUpDown2.Value);
-                UpdateAllControls(); // Обновляем только элементы управления для B
-            }
-            else if (sender == numericUpDown3)
-            {
-                model.setC((int)numericUpDown3.Value);
-                UpdateAllControls(); // Обновляем все элементы управления
+                // Используем метод модели для обработки изменения значения
+                model.HandleNumericUpDownChanged(numericUpDown, UpdateAllControls);
             }
         }
 
         // Обработчик изменения значения в trackBar
         private void trackBar_Scroll(object sender, EventArgs e)
         {
-            if (sender == trackBar1)
+            if (sender is TrackBar trackBar)
             {
-                model.setA(trackBar1.Value);
-                UpdateAllControls(); // Обновляем все элементы управления
-            }
-            else if (sender == trackBar2)
-            {
-                model.setB(trackBar2.Value);
-                UpdateAllControls(); // Обновляем только элементы управления для B
-            }
-            else if (sender == trackBar3)
-            {
-                model.setC(trackBar3.Value);
-                UpdateAllControls(); // Обновляем все элементы управления
+                // Используем метод модели для обработки изменения значения
+                model.HandleTrackBarScroll(trackBar, UpdateAllControls);
             }
         }
 
         // Обработчик изменения текста в textBox
         private void textBox_TextChanged(object sender, EventArgs e)
-        {   
-
-            if (sender == textBox1 && int.TryParse(textBox1.Text, out int valueA))
+        {
+            if (sender is TextBox textBox)
             {
-                model.setA(valueA);
-                UpdateAllControls(); // Обновляем все элементы управления
-            }
-            else if (sender == textBox2 && int.TryParse(textBox2.Text, out int valueB))
-            {
-                model.setB(valueB);
-                UpdateAllControls(); // Обновляем только элементы управления для B
-            }
-            else if (sender == textBox3 && int.TryParse(textBox3.Text, out int valueC))
-            {
-                model.setC(valueC);
-                UpdateAllControls(); // Обновляем все элементы управления
+                // Используем метод модели для обработки изменения текста
+                model.HandleTextChanged(textBox, UpdateAllControls);
             }
         }
 
@@ -96,22 +65,27 @@ namespace BagauovOOP_LR3._1
         }
 
         // Обновление элементов управления для B
-        
+
         private void textBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            // Разрешаем ввод только цифр и управляющих клавиш (Backspace)
-            if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+            if (sender is TextBox textBox)
             {
-                e.Handled = true; // Блокируем ввод
+                // Используем метод модели для выполнения всех проверок
+                e.Handled = model.HandleKeyPress(textBox, e.KeyChar);
             }
-            if (sender is TextBox textBox && char.IsDigit(e.KeyChar))
-            {
-                string currentText = textBox.Text + e.KeyChar; // Предполагаемый текст после ввода
-                if (int.TryParse(currentText, out int newValue) && newValue > 100)
-                    {
-                        e.Handled = true; // Если новое значение больше 100, блокируем ввод
-                    }   
-            }
+        }
+
+        private void Form_Click(object sender, EventArgs e)
+        {
+            // Восстанавливаем значения в TextBox с использованием метода модели
+            textBox1.Text = model.getA().ToString();
+            textBox2.Text = model.getB().ToString();
+            textBox3.Text = model.getC().ToString();
+            
+            numericUpDown1.Value = model.getA();
+            numericUpDown2.Value = model.getB();
+            numericUpDown3.Value = model.getC();
+
         }
     }
 }
@@ -191,5 +165,148 @@ class Model
             B = C;
         }
     }
-}
 
+    public string GetRestoredValue(string text, int valueType)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            switch (valueType)
+            {
+                case 1: // Для A
+                    return A.ToString();
+                case 2: // Для B
+                    return B.ToString();
+                case 3: // Для C
+                    return C.ToString();
+                default:
+                    throw new ArgumentException("Invalid value type");
+            }
+        }
+        return text;
+    }
+
+    private bool IsValidKey(char keyChar)
+    {
+        // Разрешаем только цифры и управляющие клавиши (например, Backspace)
+        return char.IsDigit(keyChar) || char.IsControl(keyChar);
+    }
+
+    // Проверка, не превышает ли новое значение лимит
+    private bool IsValueWithinLimit(string text, char newChar, int limit)
+    {
+        string newText = text + newChar; // Предполагаемый текст после ввода
+        if (int.TryParse(newText, out int newValue))
+        {
+            return newValue <= limit;
+        }
+        return true; // Если текст не является числом, считаем его допустимым
+    }
+
+    // Основной метод для обработки KeyPress
+    public bool HandleKeyPress(TextBox textBox, char keyChar)
+    {
+        // Получаем текущий текст и лимит (например, 100)
+        string currentText = textBox.Text;
+        int limit = 100;
+
+        // Если символ недопустим, блокируем ввод
+        if (!IsValidKey(keyChar))
+        {
+            return true; // Блокировать ввод
+        }
+
+        // Если символ допустим и это цифра, проверяем лимит
+        if (char.IsDigit(keyChar) && !IsValueWithinLimit(currentText, keyChar, limit))
+        {
+            return true; // Блокировать ввод
+        }
+
+        return false; // Разрешить ввод
+    }
+
+    public bool HandleTextChanged(TextBox textBox, Action updateControls)
+    {
+        if (textBox == null || string.IsNullOrEmpty(textBox.Text))
+        {
+            return false; // Если TextBox пустой, ничего не делаем
+        }
+
+        if (int.TryParse(textBox.Text, out int value))
+        {
+            if (textBox.Name == "textBox1") // Для A
+            {
+                setA(value);
+            }
+            else if (textBox.Name == "textBox2") // Для B
+            {
+                setB(value);
+            }
+            else if (textBox.Name == "textBox3") // Для C
+            {
+                setC(value);
+            }
+
+            // Вызываем метод для обновления элементов управления
+            updateControls?.Invoke();
+            return true; // Успешно обработано
+        }
+
+        return false; // Если текст не является числом, ничего не делаем
+    }
+
+    public void HandleNumericUpDownChanged(NumericUpDown numericUpDown, Action updateControls)
+    {
+        if (numericUpDown == null)
+        {
+            return; // Если NumericUpDown пустой, ничего не делаем
+        }
+
+        int value = (int)numericUpDown.Value;
+
+        if (numericUpDown.Name == "numericUpDown1") // Для A
+        {
+            setA(value);
+        }
+        else if (numericUpDown.Name == "numericUpDown2") // Для B
+        {
+            setB(value);
+        }
+        else if (numericUpDown.Name == "numericUpDown3") // Для C
+        {
+            setC(value);
+        }
+
+        // Вызываем метод для обновления элементов управления
+        updateControls?.Invoke();
+    }
+
+    // Метод для обработки изменения значения в TrackBar
+    public void HandleTrackBarScroll(TrackBar trackBar, Action updateControls)
+    {
+        if (trackBar == null)
+        {
+            return; // Если TrackBar пустой, ничего не делаем
+        }
+
+        int value = trackBar.Value;
+
+        if (trackBar.Name == "trackBar1") // Для A
+        {
+            setA(value);
+        }
+        else if (trackBar.Name == "trackBar2") // Для B
+        {
+            setB(value);
+        }
+        else if (trackBar.Name == "trackBar3") // Для C
+        {
+            setC(value);
+        }
+
+        // Вызываем метод для обновления элементов управления
+        updateControls?.Invoke();
+    }
+
+    
+
+}
