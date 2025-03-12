@@ -26,36 +26,48 @@ namespace BagauovOOP_LR3._1.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public decimal Number1 {
+        public int A {
             get {
-                return ((decimal)(this["Number1"]));
+                return ((int)(this["A"]));
             }
             set {
-                this["Number1"] = value;
+                this["A"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public decimal Number2 {
+        public int B {
             get {
-                return ((decimal)(this["Number2"]));
+                return ((int)(this["B"]));
             }
             set {
-                this["Number2"] = value;
+                this["B"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public decimal Number3 {
+        public int C {
             get {
-                return ((decimal)(this["Number3"]));
+                return ((int)(this["C"]));
             }
             set {
-                this["Number3"] = value;
+                this["C"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int NotificationCounter {
+            get {
+                return ((int)(this["NotificationCounter"]));
+            }
+            set {
+                this["NotificationCounter"] = value;
             }
         }
     }

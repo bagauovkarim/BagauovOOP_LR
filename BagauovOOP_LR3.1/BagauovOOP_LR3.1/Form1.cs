@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BagauovOOP_LR3._1.Properties;
+using System;
 using System.Windows.Forms;
 
 namespace BagauovOOP_LR3._1
@@ -11,8 +12,9 @@ namespace BagauovOOP_LR3._1
         {
             InitializeComponent();
             model = new Model();
-            
-            
+
+            model.LoadData();
+            UpdateAllControls();
         }
 
         // Обработчик изменения значения в numericUpDown
@@ -62,6 +64,8 @@ namespace BagauovOOP_LR3._1
             numericUpDown3.Value = model.getC();
             trackBar3.Value = model.getC();
             textBox3.Text = model.getC().ToString();
+
+            label6.Text = model.GetNotificationCounter().ToString();
         }
 
         // Обновление элементов управления для B
@@ -87,6 +91,14 @@ namespace BagauovOOP_LR3._1
             numericUpDown3.Value = model.getC();
 
         }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Сохраняем данные при закрытии приложения
+            model.SaveData();
+        }
+
+        
     }
 }
 
@@ -95,6 +107,8 @@ class Model
     private int A;
     private int B;
     private int C;
+    private int notificationCounter = 0; // Счетчик уведомлений
+    private bool isInitialLoad = true;
 
     // Геттеры
     public int getA()
@@ -110,60 +124,123 @@ class Model
         return C;
     }
 
+    // Геттер для счетчика уведомлений
+    public int GetNotificationCounter()
+    {
+        return notificationCounter;
+    }
+
+    // Метод для увеличения счетчика уведомлений
+    private void IncrementNotificationCounter()
+    {
+        notificationCounter++;
+    }
+
+    // Метод для обновления значений с минимизацией уведомлений
+    private void UpdateValues(int newA, int newB, int newC, Action updateControls)
+    {
+        bool isChanged = false; // Флаг для отслеживания изменений
+
+        // Проверяем и обновляем A
+        if (newA != A)
+        {
+            A = newA;
+            isChanged = true;
+        }
+
+        // Проверяем и обновляем B
+        if (newB != B)
+        {
+            B = newB;
+            isChanged = true;
+        }
+
+        // Проверяем и обновляем C
+        if (newC != C)
+        {
+            C = newC;
+            isChanged = true;
+        }
+
+        // Если хотя бы одно значение изменилось, увеличиваем счетчик уведомлений и испускаем уведомление
+        if (isChanged)
+        {
+            IncrementNotificationCounter();
+            if (!isInitialLoad) // Не вызываем уведомление при начальной загрузке
+            {
+                updateControls?.Invoke();
+            }
+        }
+    }
 
     // Сеттер для A (разрешающее поведение)
-    public void setA(int value)
+    public void setA(int value, Action updateControls)
     {
-        if (value > C )
+        int newA = value;
+        int newB = B;
+        int newC = C;
+
+        if (newA > C)
         {
             // Если A > C, увеличиваем C до значения A
-            C = value;
+            newC = newA;
         }
-        A = value;
 
         // Корректируем B, если оно вышло за пределы
-        if (B < A)
+        if (newB < newA)
         {
-            B = A;
+            newB = newA;
         }
 
-        if (B > C)
+        if (newB > newC)
         {
-            B = C;
+            newB = newC;
         }
 
+        UpdateValues(newA, newB, newC, updateControls);
     }
 
     // Сеттер для B (запрещающее поведение)
-    public void setB(int value)
+    
+    public void setB(int value, Action updateControls)
     {
         if (value >= A && value <= C)
         {
-            B = value; // Принимаем значение, если оно корректно
+            // Если значение корректно, обновляем B
+            UpdateValues(A, value, C, updateControls);
         }
-        // Иначе игнорируем (откатываем изменение)
+        else
+        {
+            // Если значение некорректно, восстанавливаем предыдущее значение B
+            UpdateValues(A, B, C, null); // Не вызываем уведомление
+        }
     }
 
     // Сеттер для C (разрешающее поведение)
-    public void setC(int value)
+    public void setC(int value, Action updateControls)
     {
-        if (value < A)
+        int newC = value;
+        int newA = A;
+        int newB = B;
+
+        if (newC < A)
         {
             // Если C < A, уменьшаем A до значения C
-            A = value;
+            newA = newC;
         }
-        C = value;
 
         // Корректируем B, если оно вышло за пределы
-        if (B < A)
+        if (newB < newA)
         {
-            B = A;
+            newB = newA;
         }
 
-        if (B > C)
+        if (newB > newC)
         {
-            B = C;
+            newB = newC;
         }
+
+        UpdateValues(newA, newB, newC, updateControls);
     }
 
     public string GetRestoredValue(string text, int valueType)
@@ -235,19 +312,26 @@ class Model
         {
             if (textBox.Name == "textBox1") // Для A
             {
-                setA(value);
+                setA(value, updateControls);
             }
             else if (textBox.Name == "textBox2") // Для B
             {
-                setB(value);
+                // Проверяем, соответствует ли значение бизнес-правилам
+                if (value >= getA() && value <= getC())
+                {
+                    setB(value, updateControls);
+                }
+                else
+                {
+                    // Если значение некорректно, восстанавливаем предыдущее значение
+                    textBox.Text = getB().ToString();
+                }
             }
             else if (textBox.Name == "textBox3") // Для C
             {
-                setC(value);
+                setC(value, updateControls);
             }
 
-            // Вызываем метод для обновления элементов управления
-            updateControls?.Invoke();
             return true; // Успешно обработано
         }
 
@@ -265,22 +349,27 @@ class Model
 
         if (numericUpDown.Name == "numericUpDown1") // Для A
         {
-            setA(value);
+            setA(value, updateControls);
         }
         else if (numericUpDown.Name == "numericUpDown2") // Для B
         {
-            setB(value);
+            // Проверяем, соответствует ли значение бизнес-правилам
+            if (value >= getA() && value <= getC())
+            {
+                setB(value, updateControls);
+            }
+            else
+            {
+                // Если значение некорректно, восстанавливаем предыдущее значение
+                numericUpDown.Value = getB();
+            }
         }
         else if (numericUpDown.Name == "numericUpDown3") // Для C
         {
-            setC(value);
+            setC(value, updateControls);
         }
-
-        // Вызываем метод для обновления элементов управления
-        updateControls?.Invoke();
     }
 
-    // Метод для обработки изменения значения в TrackBar
     public void HandleTrackBarScroll(TrackBar trackBar, Action updateControls)
     {
         if (trackBar == null)
@@ -292,21 +381,51 @@ class Model
 
         if (trackBar.Name == "trackBar1") // Для A
         {
-            setA(value);
+            setA(value, updateControls);
         }
         else if (trackBar.Name == "trackBar2") // Для B
         {
-            setB(value);
+            // Проверяем, соответствует ли значение бизнес-правилам
+            if (value >= getA() && value <= getC())
+            {
+                setB(value, updateControls);
+            }
+            else
+            {
+                // Если значение некорректно, восстанавливаем предыдущее значение
+                trackBar.Value = getB();
+            }
         }
         else if (trackBar.Name == "trackBar3") // Для C
         {
-            setC(value);
+            setC(value, updateControls);
         }
-
-        // Вызываем метод для обновления элементов управления
-        updateControls?.Invoke();
     }
 
-    
+    public void SaveData()
+    {
+        Settings.Default.A = A;
+        Settings.Default.B = B;
+        Settings.Default.C = C;
+        Settings.Default.NotificationCounter = notificationCounter;
+        Settings.Default.Save(); // Сохраняем настройки
+    }
+
+    // Метод для загрузки данных из настроек
+    public void LoadData()
+    {
+        A = Settings.Default.A;
+        B = Settings.Default.B;
+        C = Settings.Default.C;
+        notificationCounter = Settings.Default.NotificationCounter;
+
+        // Увеличиваем счетчик уведомлений при загрузке данных
+        IncrementNotificationCounter();
+
+        // После загрузки данных сбрасываем флаг
+        isInitialLoad = false;
+    }
+
+
 
 }

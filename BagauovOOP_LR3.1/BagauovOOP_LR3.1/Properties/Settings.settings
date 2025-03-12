@@ -2,13 +2,16 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="BagauovOOP_LR3._1.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="Number1" Type="System.Decimal" Scope="User">
+    <Setting Name="A" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="Number2" Type="System.Decimal" Scope="User">
+    <Setting Name="B" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="Number3" Type="System.Decimal" Scope="User">
+    <Setting Name="C" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="NotificationCounter" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
   </Settings>
