@@ -1,5 +1,6 @@
 ﻿using BagauovOOP_LR3._1.Properties;
 using System;
+using System.Diagnostics;
 using System.Windows.Forms;
 
 namespace BagauovOOP_LR3._1
@@ -12,9 +13,10 @@ namespace BagauovOOP_LR3._1
         {
             InitializeComponent();
             model = new Model();
+            model.observers += new System.EventHandler(this.UpdateAllControls);
 
             model.LoadData();
-            UpdateAllControls();
+            UpdateAllControls(null, null);
         }
 
         // Обработчик изменения значения в numericUpDown
@@ -23,7 +25,7 @@ namespace BagauovOOP_LR3._1
             if (sender is NumericUpDown numericUpDown)
             {
                 // Используем метод модели для обработки изменения значения
-                model.HandleNumericUpDownChanged(numericUpDown, UpdateAllControls);
+                model.HandleNumericUpDownChanged(numericUpDown);
             }
         }
 
@@ -33,7 +35,7 @@ namespace BagauovOOP_LR3._1
             if (sender is TrackBar trackBar)
             {
                 // Используем метод модели для обработки изменения значения
-                model.HandleTrackBarScroll(trackBar, UpdateAllControls);
+                model.HandleTrackBarScroll(trackBar);
             }
         }
 
@@ -43,13 +45,14 @@ namespace BagauovOOP_LR3._1
             if (sender is TextBox textBox)
             {
                 // Используем метод модели для обработки изменения текста
-                model.HandleTextChanged(textBox, UpdateAllControls);
+                model.HandleTextChanged(textBox);
             }
         }
 
         // Обновление всех элементов управления
-        private void UpdateAllControls()
+        private void UpdateAllControls(object sender, EventArgs e)
         {
+
             // Обновляем элементы управления для A
             numericUpDown1.Value = model.getA();
             trackBar1.Value = model.getA();
@@ -65,7 +68,7 @@ namespace BagauovOOP_LR3._1
             trackBar3.Value = model.getC();
             textBox3.Text = model.getC().ToString();
 
-            label6.Text = model.GetNotificationCounter().ToString();
+
         }
 
         // Обновление элементов управления для B
@@ -85,7 +88,7 @@ namespace BagauovOOP_LR3._1
             textBox1.Text = model.getA().ToString();
             textBox2.Text = model.getB().ToString();
             textBox3.Text = model.getC().ToString();
-            
+
             numericUpDown1.Value = model.getA();
             numericUpDown2.Value = model.getB();
             numericUpDown3.Value = model.getC();
@@ -98,8 +101,19 @@ namespace BagauovOOP_LR3._1
             model.SaveData();
         }
 
-        
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter) // Проверяем, нажата ли клавиша Enter
+            {
+                if (sender is TextBox textBox)
+                {
+                    // Вызываем метод модели для обработки
+                    model.HandleTextBoxEnter(textBox);
+                }
+            }
+        }
     }
+
 }
 
 class Model
@@ -107,8 +121,8 @@ class Model
     private int A;
     private int B;
     private int C;
-    private int notificationCounter = 0; // Счетчик уведомлений
-    private bool isInitialLoad = true;
+    public System.EventHandler observers;
+
 
     // Геттеры
     public int getA()
@@ -124,22 +138,10 @@ class Model
         return C;
     }
 
-    // Геттер для счетчика уведомлений
-    public int GetNotificationCounter()
-    {
-        return notificationCounter;
-    }
-
-    // Метод для увеличения счетчика уведомлений
-    private void IncrementNotificationCounter()
-    {
-        notificationCounter++;
-    }
-
     // Метод для обновления значений с минимизацией уведомлений
-    private void UpdateValues(int newA, int newB, int newC, Action updateControls)
+    private void UpdateValues(int newA, int newB, int newC)
     {
-        bool isChanged = false; // Флаг для отслеживания изменений
+        bool isChanged = false; // Флаг для отслеживания изменений (для атомарности)
 
         // Проверяем и обновляем A
         if (newA != A)
@@ -162,19 +164,16 @@ class Model
             isChanged = true;
         }
 
-        // Если хотя бы одно значение изменилось, увеличиваем счетчик уведомлений и испускаем уведомление
+        // Если хотя бы одно значение изменилось, испускаем уведомление
         if (isChanged)
         {
-            IncrementNotificationCounter();
-            if (!isInitialLoad) // Не вызываем уведомление при начальной загрузке
-            {
-                updateControls?.Invoke();
-            }
+            Debug.WriteLine("Sending update notification");
+            observers.Invoke(this, null);
         }
     }
 
     // Сеттер для A (разрешающее поведение)
-    public void setA(int value, Action updateControls)
+    private void setA(int value)
     {
         int newA = value;
         int newB = B;
@@ -197,27 +196,26 @@ class Model
             newB = newC;
         }
 
-        UpdateValues(newA, newB, newC, updateControls);
+        UpdateValues(newA, newB, newC);
     }
 
     // Сеттер для B (запрещающее поведение)
-    
-    public void setB(int value, Action updateControls)
+    private void setB(int value)
     {
         if (value >= A && value <= C)
         {
             // Если значение корректно, обновляем B
-            UpdateValues(A, value, C, updateControls);
+            UpdateValues(A, value, C);
         }
         else
         {
             // Если значение некорректно, восстанавливаем предыдущее значение B
-            UpdateValues(A, B, C, null); // Не вызываем уведомление
+            UpdateValues(A, B, C); // Не вызываем уведомление
         }
     }
 
     // Сеттер для C (разрешающее поведение)
-    public void setC(int value, Action updateControls)
+    private void setC(int value)
     {
         int newC = value;
         int newA = A;
@@ -240,31 +238,13 @@ class Model
             newB = newC;
         }
 
-        UpdateValues(newA, newB, newC, updateControls);
+        UpdateValues(newA, newB, newC);
     }
 
-    public string GetRestoredValue(string text, int valueType)
-    {
-        if (string.IsNullOrEmpty(text))
-        {
-            switch (valueType)
-            {
-                case 1: // Для A
-                    return A.ToString();
-                case 2: // Для B
-                    return B.ToString();
-                case 3: // Для C
-                    return C.ToString();
-                default:
-                    throw new ArgumentException("Invalid value type");
-            }
-        }
-        return text;
-    }
 
     private bool IsValidKey(char keyChar)
     {
-        // Разрешаем только цифры и управляющие клавиши (например, Backspace)
+        // Разрешаем только цифры и управляющие клавиши (для Backspace)
         return char.IsDigit(keyChar) || char.IsControl(keyChar);
     }
 
@@ -276,7 +256,7 @@ class Model
         {
             return newValue <= limit;
         }
-        return true; // Если текст не является числом, считаем его допустимым
+        return false; // Если текст не является числом, считаем его недопустимым
     }
 
     // Основной метод для обработки KeyPress
@@ -301,25 +281,25 @@ class Model
         return false; // Разрешить ввод
     }
 
-    public bool HandleTextChanged(TextBox textBox, Action updateControls)
+    public bool HandleTextChanged(TextBox textBox)
     {
         if (textBox == null || string.IsNullOrEmpty(textBox.Text))
         {
-            return false; // Если TextBox пустой, ничего не делаем
+            return false;
         }
 
         if (int.TryParse(textBox.Text, out int value))
         {
             if (textBox.Name == "textBox1") // Для A
             {
-                setA(value, updateControls);
+                setA(value);
             }
             else if (textBox.Name == "textBox2") // Для B
             {
                 // Проверяем, соответствует ли значение бизнес-правилам
                 if (value >= getA() && value <= getC())
                 {
-                    setB(value, updateControls);
+                    setB(value);
                 }
                 else
                 {
@@ -329,7 +309,7 @@ class Model
             }
             else if (textBox.Name == "textBox3") // Для C
             {
-                setC(value, updateControls);
+                setC(value);
             }
 
             return true; // Успешно обработано
@@ -338,7 +318,7 @@ class Model
         return false; // Если текст не является числом, ничего не делаем
     }
 
-    public void HandleNumericUpDownChanged(NumericUpDown numericUpDown, Action updateControls)
+    public void HandleNumericUpDownChanged(NumericUpDown numericUpDown)
     {
         if (numericUpDown == null)
         {
@@ -349,14 +329,14 @@ class Model
 
         if (numericUpDown.Name == "numericUpDown1") // Для A
         {
-            setA(value, updateControls);
+            setA(value);
         }
         else if (numericUpDown.Name == "numericUpDown2") // Для B
         {
             // Проверяем, соответствует ли значение бизнес-правилам
             if (value >= getA() && value <= getC())
             {
-                setB(value, updateControls);
+                setB(value);
             }
             else
             {
@@ -366,11 +346,11 @@ class Model
         }
         else if (numericUpDown.Name == "numericUpDown3") // Для C
         {
-            setC(value, updateControls);
+            setC(value);
         }
     }
 
-    public void HandleTrackBarScroll(TrackBar trackBar, Action updateControls)
+    public void HandleTrackBarScroll(TrackBar trackBar)
     {
         if (trackBar == null)
         {
@@ -381,14 +361,14 @@ class Model
 
         if (trackBar.Name == "trackBar1") // Для A
         {
-            setA(value, updateControls);
+            setA(value);
         }
         else if (trackBar.Name == "trackBar2") // Для B
         {
             // Проверяем, соответствует ли значение бизнес-правилам
             if (value >= getA() && value <= getC())
             {
-                setB(value, updateControls);
+                setB(value);
             }
             else
             {
@@ -398,7 +378,7 @@ class Model
         }
         else if (trackBar.Name == "trackBar3") // Для C
         {
-            setC(value, updateControls);
+            setC(value);
         }
     }
 
@@ -407,7 +387,6 @@ class Model
         Settings.Default.A = A;
         Settings.Default.B = B;
         Settings.Default.C = C;
-        Settings.Default.NotificationCounter = notificationCounter;
         Settings.Default.Save(); // Сохраняем настройки
     }
 
@@ -417,15 +396,33 @@ class Model
         A = Settings.Default.A;
         B = Settings.Default.B;
         C = Settings.Default.C;
-        notificationCounter = Settings.Default.NotificationCounter;
 
-        // Увеличиваем счетчик уведомлений при загрузке данных
-        IncrementNotificationCounter();
+        Debug.WriteLine("Sending update notification");
+        observers.Invoke(this, null);
 
-        // После загрузки данных сбрасываем флаг
-        isInitialLoad = false;
     }
 
 
+    public void HandleTextBoxEnter(TextBox textBox)
+    {
+        if (textBox == null)
+            return;
 
+        // Если TextBox пустой, восстанавливаем значение
+        if (string.IsNullOrEmpty(textBox.Text))
+        {
+            if (textBox.Name == "textBox1") // Для A
+            {
+                textBox.Text = getA().ToString();
+            }
+            else if (textBox.Name == "textBox2") // Для B
+            {
+                textBox.Text = getB().ToString();
+            }
+            else if (textBox.Name == "textBox3") // Для C
+            {
+                textBox.Text = getC().ToString();
+            }
+        }
+    }
 }
