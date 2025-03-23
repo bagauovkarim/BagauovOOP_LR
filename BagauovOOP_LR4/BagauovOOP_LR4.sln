@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35312.102
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BagauovOOP_LR4", "BagauovOOP_LR4\BagauovOOP_LR4.csproj", "{2286101B-9030-432C-8D80-595AFD6F1ACF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2286101B-9030-432C-8D80-595AFD6F1ACF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2286101B-9030-432C-8D80-595AFD6F1ACF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2286101B-9030-432C-8D80-595AFD6F1ACF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2286101B-9030-432C-8D80-595AFD6F1ACF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A3A25C21-7A5A-43C5-9C11-EEA472E5B550}
+	EndGlobalSection
+EndGlobal
