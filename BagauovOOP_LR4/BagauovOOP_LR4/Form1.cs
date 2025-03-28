@@ -2,306 +2,346 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using static BagauovOOP_LR4.Form1;
 
 namespace BagauovOOP_LR4
 {
     public partial class Form1 : Form
     {
-        private CircleContainer circles = new CircleContainer(); // Контейнер для кругов
-        private Point startPoint;
-        private bool selecting = false;
-        private Rectangle selectionRectangle;
-        private bool mouseMoved = false;
-        private bool ctrlPressed = false;
+        private ShapeContainer shapes = new ShapeContainer();
+        
+        private string selectedShapeType = "";
 
         public Form1()
         {
             InitializeComponent();
-            this.Paint += new PaintEventHandler(Form1_Paint_DrawCircles);
-            this.MouseClick += new MouseEventHandler(Form1_MouseClick);
-            this.MouseDown += new MouseEventHandler(Form1_MouseDown);
-            this.MouseMove += new MouseEventHandler(Form1_MouseMove);
-            this.MouseUp += new MouseEventHandler(Form1_MouseUp);
-            this.KeyDown += new KeyEventHandler(Form1_KeyDown);
-            this.KeyUp += new KeyEventHandler(Form1_KeyUp);
+            this.DoubleBuffered = true;
+            InitializeToolboxEvents();
         }
 
-        private void Form1_Paint_DrawCircles(object sender, PaintEventArgs e)
+        private void InitializeToolboxEvents()
         {
-            Graphics g = e.Graphics;
-
-            // Рисуем все круги через контейнер
-            for (circles.First(); !circles.EOL(); circles.Next())
+            foreach (Control c in toolboxPanel.Controls)
             {
-                circles.GetCurrent().Draw(g);
+                if (c is PictureBox tool)
+                {
+                    tool.Click += (s, e) =>
+                    {
+                        selectedShapeType = tool.Tag.ToString();
+                        foreach (Control ct in toolboxPanel.Controls)
+                            ct.BackColor = Color.White;
+                        tool.BackColor = Color.LightBlue;
+                        this.Cursor = Cursors.Cross;
+                    };
+
+                    tool.MouseEnter += (s, e) => tool.BackColor = Color.LightGray;
+                    tool.MouseLeave += (s, e) =>
+                    {
+                        if (tool.Tag.ToString() != selectedShapeType)
+                            tool.BackColor = Color.White;
+                    };
+                }
+            }
+        }
+
+
+
+        public abstract class CShape
+        {
+            public Point Position { get; set; }
+            public Size Size { get; set; }
+            public Color FillColor { get; set; } = Color.White;
+            public bool IsSelected { get; set; }
+            public string Name { get; set; } = "Фигура";
+
+            // Абстрактные методы (должны быть реализованы в наследниках)
+            public abstract void Draw(Graphics g);
+            public abstract bool Contains(Point point);
+            public abstract Rectangle GetBoundingBox();
+
+            // Виртуальные методы (могут быть переопределены в наследниках)
+            public virtual void Move(Point newPosition)
+            {
+                Position = newPosition;
             }
 
-            // Рисуем прямоугольник выделения, если идет выделение
-            if (selecting)
+            public virtual void Resize(Size newSize)
             {
-                Pen pen = new Pen(Color.Blue);
-                e.Graphics.DrawRectangle(pen, selectionRectangle);
+                Size = newSize;
+            }
+
+            public virtual void Select()
+            {
+                IsSelected = true;
+                FillColor = Color.Red; // Выделение красной рамкой
+                
+            }
+
+            public virtual void Deselect()
+            {
+                IsSelected = false;
+                FillColor = Color.White;
+                
+            }
+
+            // Общие методы для всех фигур
+            public void ChangeFillColor(Color newColor)
+            {
+                FillColor = newColor;
+            }
+
+
+            public bool IntersectsWith(Rectangle rect)
+            {
+                return GetBoundingBox().IntersectsWith(rect);
+            }
+
+            public virtual void DrawSelection(Graphics g)
+            {
+                if (IsSelected)
+                {
+                    using (var pen = new Pen(Color.DarkBlue, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash })
+                    {
+                        var bounds = GetBoundingBox();
+                        bounds.Inflate(5, 5);
+                        g.DrawRectangle(pen, bounds);
+                    }
+                }
+            }
+        }
+
+        /*public class CRectangle : CShape
+        {
+
+        }*/
+
+        /*public class CSquare : CShape
+        {
+
+        }*/
+
+        /*public class CTriangle : CShape
+        {
+
+        }*/
+
+        /*public class CEllipse : CShape
+        {
+
+        }*/
+
+        /*public class CLine : CShape
+        {
+
+        }*/
+
+        public class CCircle : CShape
+        {
+            public int Radius
+            {
+                get { return Size.Width / 2; }
+                private set { Size = new Size(value * 2, value * 2); }
+            }
+
+            public CCircle(int x, int y, int radius)
+            {
+                Position = new Point(x, y);
+                Radius = radius;
+                Name = "Круг";
+                FillColor = Color.White; // Белая заливка по умолчанию
+            }
+
+            public override void Draw(Graphics g)
+            {
+                // Черный контур (как в исходном коде)
+                Pen pen = new Pen(Color.Black, IsSelected ? 2 : 1);
+                Brush brush = new SolidBrush(FillColor);
+
+                int diameter = Size.Width;
+                g.FillEllipse(brush, Position.X - Radius, Position.Y - Radius, diameter, diameter);
+                g.DrawEllipse(pen, Position.X - Radius, Position.Y - Radius, diameter, diameter);
+
                 pen.Dispose();
+                brush.Dispose();
 
+                if (IsSelected)
+                {
+                    // Синяя пунктирная рамка выделения
+                    Pen selectionPen = new Pen(Color.Blue, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
+                    var bounds = GetBoundingBox();
+                    bounds.Inflate(5, 5);
+                    g.DrawRectangle(selectionPen, bounds);
+                    selectionPen.Dispose();
+                }
+            }
+
+            public override bool Contains(Point point)
+            {
+                int dx = point.X - Position.X;
+                int dy = point.Y - Position.Y;
+                return dx * dx + dy * dy <= Radius * Radius;
+            }
+
+            public override Rectangle GetBoundingBox()
+            {
+                return new Rectangle(
+                    Position.X - Radius,
+                    Position.Y - Radius,
+                    Radius * 2,
+                    Radius * 2);
+            }
+
+            public void SetRadius(int newRadius)
+            {
+                Radius = newRadius; // Используем приватный сеттер
+            }
+
+            public override void Select()
+            {
+                base.Select();
+                FillColor = Color.Red; // Красная заливка при выделении
+            }
+
+            public override void Deselect()
+            {
+                base.Deselect();
+                FillColor = Color.White; // Белая заливка при снятии выделения
             }
         }
 
-        private void Form1_MouseClick(object sender, MouseEventArgs e)
+        public class ShapeContainer
         {
-            bool clickedOnCircle = false;
+            private List<CShape> shapes = new List<CShape>();
+            private int currentIndex = 0;
 
-            // Проверяем, попал ли клик на какой-либо круг
-            for (circles.First(); !circles.EOL(); circles.Next())
+            // Добавление фигуры
+            public void Add(CShape shape)
             {
-                if (circles.GetCurrent().Contains(e.Location))
-                {
-                    clickedOnCircle = true;
+                shapes.Add(shape);
+            }
 
-                    // Если круг уже выделен, снимаем выделение
-                    if (circles.GetCurrent().IsCircleSelected())
+            // Удаление выделенных фигур
+            public void RemoveSelected()
+            {
+                for (int i = shapes.Count - 1; i >= 0; i--)
+                {
+                    if (shapes[i].IsSelected)
                     {
-                        circles.GetCurrent().Deselect();
+                        shapes.RemoveAt(i);
                     }
-                    else
+                }
+            }
+
+            // Снятие выделения со всех фигур
+            public void DeselectAll()
+            {
+                for (int i = 0; i < shapes.Count; i++)
+                {
+                    shapes[i].Deselect();
+                }
+            }
+
+            // Выделение фигур в прямоугольной области
+            public void SelectInRectangle(Rectangle rect)
+            {
+                for (int i = 0; i < shapes.Count; i++)
+                {
+                    if (shapes[i].IntersectsWith(rect))
                     {
-                        // Если круг не выделен, выделяем его
-                        circles.GetCurrent().Select();
+                        shapes[i].Select();
                     }
-                    break;
                 }
             }
 
-            // Если клик был вне всех кругов и мышь не двигалась
-            if (!clickedOnCircle && !mouseMoved)
+            // Получение количества выделенных фигур
+            public int GetSelectedCount()
             {
-                if (circles.GetSelectedCount() == 0)
+                int count = 0;
+                for (int i = 0; i < shapes.Count; i++)
                 {
-                    // Добавляем новый круг (не выделенный)
-                    CCircle newCircle = new CCircle(e.X, e.Y, 30);
-                    circles.Add(newCircle);
+                    if (shapes[i].IsSelected)
+                    {
+                        count++;
+                    }
                 }
-                else
-                {
-                    circles.DeselectAll(); // Снимаем выделение со всех кругов
-                }
+                return count;
             }
 
-            this.Invalidate();
+            // Методы для ручной итерации (как в оригинальном CircleContainer)
+            public void First()
+            {
+                currentIndex = 0;
+            }
+
+            public bool EOL()
+            {
+                return currentIndex >= shapes.Count;
+            }
+
+            public void Next()
+            {
+                currentIndex++;
+            }
+
+            public CShape GetCurrent()
+            {
+                return shapes[currentIndex];
+            }
+
+            // Дополнительные базовые методы
+            public int Count
+            {
+                get { return shapes.Count; }
+            }
+
+            public void Clear()
+            {
+                shapes.Clear();
+            }
         }
 
-        private void Form1_MouseDown(object sender, MouseEventArgs e)
+        private void Form1_Click(object sender, EventArgs e)
         {
-            if (e.Button == MouseButtons.Left && ctrlPressed)
+            // Проверяем, что клик был левой кнопкой мыши и выбран инструмент "Круг"
+            if (((MouseEventArgs)e).Button == MouseButtons.Left && selectedShapeType == "Круг")
             {
-                startPoint = e.Location;
-                selecting = true;
-                mouseMoved = false;
-                selectionRectangle = new Rectangle(startPoint.X, startPoint.Y, 0, 0);
+                // Получаем координаты клика
+                Point clickPoint = this.PointToClient(Cursor.Position);
+
+                // Создаем новый круг с радиусом 30 пикселей
+                CCircle newCircle = new CCircle(clickPoint.X, clickPoint.Y, 30);
+
+                // Добавляем круг в контейнер
+                shapes.Add(newCircle);
+
+                // Перерисовываем форму
                 this.Invalidate();
+
+                // Выводим информацию в консоль (для отладки)
+                Console.WriteLine($"Создан новый круг в ({clickPoint.X}, {clickPoint.Y})");
             }
         }
 
-        private void Form1_MouseMove(object sender, MouseEventArgs e)
+        private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            if (selecting && ctrlPressed)
+            for (shapes.First(); !shapes.EOL(); shapes.Next())
             {
-                mouseMoved = true;
-                int x = Math.Min(startPoint.X, e.X);
-                int y = Math.Min(startPoint.Y, e.Y);
-                int width = Math.Abs(e.X - startPoint.X);
-                int height = Math.Abs(e.Y - startPoint.Y);
+                CShape currentShape = shapes.GetCurrent();
 
-                selectionRectangle = new Rectangle(x, y, width, height);
-                this.Invalidate();
-            }
-        }
-
-        private void Form1_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                selecting = false;
-
-                if (mouseMoved)
+                // Проверяем, что фигура существует (защита от null)
+                if (currentShape != null)
                 {
-                    circles.SelectCirclesInRectangle(selectionRectangle); // Выделяем круги в прямоугольнике
-                }
-
-                mouseMoved = false;
-                this.Invalidate();
-            }
-        }
-
-        private void Form1_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Delete)
-            {
-                circles.RemoveSelected(); // Удаляем выделенные круги
-                this.Invalidate();
-            }
-
-            if (e.KeyCode == Keys.ControlKey)
-            {
-                ctrlPressed = true;
-            }
-        }
-
-        private void Form1_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.ControlKey)
-            {
-                ctrlPressed = false;
-
-                if (selecting)
-                {
-                    selecting = false;
-                    selectionRectangle = Rectangle.Empty;
-                    this.Invalidate();
+                    try
+                    {
+                        currentShape.Draw(e.Graphics);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Обработка ошибок рисования (можно заменить на логирование)
+                        Console.WriteLine($"Ошибка при рисовании фигуры: {ex.Message}");
+                    }
                 }
             }
-        }
-    }
-
-    // Класс-контейнер для кругов
-    public class CircleContainer
-    {
-        private List<CCircle> circles = new List<CCircle>();
-        private int currentIndex = 0;
-
-        // Добавление круга
-        public void Add(CCircle circle)
-        {
-            circles.Add(circle);
-        }
-
-        // Удаление выделенных кругов
-        public void RemoveSelected()
-        {
-            for (int i = circles.Count - 1; i >= 0; i--)
-            {
-                if (circles[i].IsCircleSelected())
-                {
-                    circles.RemoveAt(i);
-                }
-            }
-        }
-
-        // Снятие выделения со всех кругов
-        public void DeselectAll()
-        {
-            for (int i = 0; i < circles.Count; i++)
-            {
-                circles[i].Deselect();
-            }
-        }
-
-        // Выделение кругов, пересекающихся с прямоугольником
-        public void SelectCirclesInRectangle(Rectangle rect)
-        {
-            for (int i = 0; i < circles.Count; i++)
-            {
-                if (circles[i].IntersectsWith(rect))
-                {
-                    circles[i].Select();
-                }
-            }
-        }
-
-        // Получение количества выделенных кругов
-        public int GetSelectedCount()
-        {
-            int count = 0;
-            for (int i = 0; i < circles.Count; i++)
-            {
-                if (circles[i].IsCircleSelected())
-                {
-                    count++;
-                }
-            }
-            return count;
-        }
-
-        // Методы для итерации по кругам
-        public void First()
-        {
-            currentIndex = 0;
-        }
-
-        public bool EOL()
-        {
-            return currentIndex >= circles.Count;
-        }
-
-        public void Next()
-        {
-            currentIndex++;
-        }
-
-        public CCircle GetCurrent()
-        {
-            return circles[currentIndex];
-        }
-    }
-
-    // Класс круга
-    public class CCircle
-    {
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int Radius { get; private set; }
-        private bool isCircleSelected;
-
-        public CCircle(int x, int y, int radius)
-        {
-            X = x;
-            Y = y;
-            Radius = radius;
-            isCircleSelected = false;
-        }
-
-        // Проверка, попадает ли точка в круг
-        public bool Contains(Point point)
-        {
-            int dx = point.X - X;
-            int dy = point.Y - Y;
-            return dx * dx + dy * dy <= Radius * Radius;
-        }
-
-        // Рисование круга
-        public void Draw(Graphics g)
-        {
-            if (isCircleSelected)
-            {
-                g.DrawEllipse(Pens.Blue, X - Radius, Y - Radius, Radius * 2, Radius * 2);
-                g.FillEllipse(Brushes.Red, X - Radius, Y - Radius, Radius * 2, Radius * 2);
-            }
-            else
-            {
-                g.DrawEllipse(Pens.Black, X - Radius, Y - Radius, Radius * 2, Radius * 2);
-            }
-        }
-
-        // Проверка пересечения с прямоугольником
-        public bool IntersectsWith(Rectangle rect)
-        {
-            Rectangle circleBounds = new Rectangle(X - Radius, Y - Radius, Radius * 2, Radius * 2);
-            return rect.IntersectsWith(circleBounds);
-        }
-
-        // Управление выделением
-        public void Select()
-        {
-            isCircleSelected = true;
-        }
-
-        public void Deselect()
-        {
-            isCircleSelected = false;
-        }
-
-        public bool IsCircleSelected()
-        {
-            return isCircleSelected;
         }
     }
 }
