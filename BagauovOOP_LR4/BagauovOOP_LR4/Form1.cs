@@ -30,7 +30,7 @@ namespace BagauovOOP_LR4
                         selectedShapeType = tool.Tag.ToString();
                         foreach (Control ct in toolboxPanel.Controls)
                             ct.BackColor = Color.White;
-                        tool.BackColor = Color.LightBlue;
+                        tool.BackColor = Color.LightSkyBlue;
                         this.Cursor = Cursors.Cross;
                     };
 
@@ -110,20 +110,134 @@ namespace BagauovOOP_LR4
             }
         }
 
-        /*public class CRectangle : CShape
+        public class CRectangle : CShape
         {
 
-        }*/
+            public CRectangle(int x, int y)
+            {
+                Position = new Point(x, y);
+                Name = "Прямоугольник";
+                Size = new Size(40, 60);
+                FillColor = Color.White; // Белая заливка по умолчанию
+            }
 
-        /*public class CSquare : CShape
+            public override void Draw(Graphics g)
+            {
+                // Черный контур (как в исходном коде)
+                Pen pen = new Pen(Color.Black, IsSelected ? 2 : 1);
+                Brush brush = new SolidBrush(FillColor);
+
+                int Height = Size.Height;
+                int Width = Size.Width;
+                g.FillRectangle(brush, Position.X, Position.Y, Height, Width);
+                g.DrawRectangle(pen, Position.X, Position.Y, Height, Width);
+
+                pen.Dispose();
+                brush.Dispose();
+
+                if (IsSelected)
+                {
+                    // Синяя пунктирная рамка выделения
+                    Pen selectionPen = new Pen(Color.Blue, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
+                    var bounds = GetBoundingBox();
+                    bounds.Inflate(5, 5);
+                    g.DrawRectangle(selectionPen, bounds);
+                    selectionPen.Dispose();
+                }
+            }
+
+            public override bool Contains(Point point)
+            {
+                if (point.X > Position.X && point.X < Position.X + Size.Width && point.Y > Position.Y && point.Y < Position.Y + Size.Height)
+                {
+                    return true;
+                }
+                else
+                    return false;
+            }
+
+            public override Rectangle GetBoundingBox()
+            {
+                return new Rectangle(Position.X, Position.Y, Size.Height, Size.Width);
+                  
+            }
+
+            public override void Select()
+            {
+                base.Select();
+                FillColor = Color.Red; // Красная заливка при выделении
+            }
+
+            public override void Deselect()
+            {
+                base.Deselect();
+                FillColor = Color.White; // Белая заливка при снятии выделения
+            }
+        }
+
+        public class CTriangle : CShape
         {
+            public CTriangle(int x, int y)
+            {
+                Position = new Point(x, y);
+                Name = "Прямоугольник";
+                Size = new Size(40, 60);
+                FillColor = Color.White; // Белая заливка по умолчанию
+            }
 
-        }*/
+            public override void Draw(Graphics g)
+            {
+                // Черный контур (как в исходном коде)
+                Pen pen = new Pen(Color.Black, IsSelected ? 2 : 1);
+                Brush brush = new SolidBrush(FillColor);
 
-        /*public class CTriangle : CShape
-        {
+                int Height = Size.Height;
+                int Width = Size.Width;
+                g.FillRectangle(brush, Position.X, Position.Y, Height, Width);
+                g.DrawRectangle(pen, Position.X, Position.Y, Height, Width);
 
-        }*/
+                pen.Dispose();
+                brush.Dispose();
+
+                if (IsSelected)
+                {
+                    // Синяя пунктирная рамка выделения
+                    Pen selectionPen = new Pen(Color.Blue, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
+                    var bounds = GetBoundingBox();
+                    bounds.Inflate(5, 5);
+                    g.DrawRectangle(selectionPen, bounds);
+                    selectionPen.Dispose();
+                }
+            }
+
+            public override bool Contains(Point point)
+            {
+                if (point.X > Position.X && point.X < Position.X + Size.Width && point.Y > Position.Y && point.Y < Position.Y + Size.Height)
+                {
+                    return true;
+                }
+                else
+                    return false;
+            }
+
+            public override Rectangle GetBoundingBox()
+            {
+                return new Rectangle(Position.X, Position.Y, Size.Height, Size.Width);
+
+            }
+
+            public override void Select()
+            {
+                base.Select();
+                FillColor = Color.Red; // Красная заливка при выделении
+            }
+
+            public override void Deselect()
+            {
+                base.Deselect();
+                FillColor = Color.White; // Белая заливка при снятии выделения
+            }
+        }
 
         /*public class CEllipse : CShape
         {
@@ -137,17 +251,17 @@ namespace BagauovOOP_LR4
 
         public class CCircle : CShape
         {
-            public int Radius
+            private int Radius
             {
                 get { return Size.Width / 2; }
-                private set { Size = new Size(value * 2, value * 2); }
+                set { Size = new Size(value * 2, value * 2); }
             }
-
+            
             public CCircle(int x, int y, int radius)
             {
                 Position = new Point(x, y);
-                Radius = radius;
                 Name = "Круг";
+                Radius = radius;
                 FillColor = Color.White; // Белая заливка по умолчанию
             }
 
@@ -184,11 +298,7 @@ namespace BagauovOOP_LR4
 
             public override Rectangle GetBoundingBox()
             {
-                return new Rectangle(
-                    Position.X - Radius,
-                    Position.Y - Radius,
-                    Radius * 2,
-                    Radius * 2);
+                return new Rectangle(Position.X - Radius, Position.Y - Radius, Radius * 2, Radius * 2);
             }
 
             public void SetRadius(int newRadius)
@@ -319,6 +429,40 @@ namespace BagauovOOP_LR4
 
                 // Выводим информацию в консоль (для отладки)
                 Console.WriteLine($"Создан новый круг в ({clickPoint.X}, {clickPoint.Y})");
+            }
+            else if (((MouseEventArgs)e).Button == MouseButtons.Left && selectedShapeType == "Прямоугольник")
+            {
+                // Получаем координаты клика
+                Point clickPoint = this.PointToClient(Cursor.Position);
+
+                
+                CRectangle newRectangle = new CRectangle(clickPoint.X, clickPoint.Y);
+
+                // Добавляем круг в контейнер
+                shapes.Add(newRectangle);
+
+                // Перерисовываем форму
+                this.Invalidate();
+
+                // Выводим информацию в консоль (для отладки)
+                Console.WriteLine($"Создан новый прямоугольник в ({clickPoint.X}, {clickPoint.Y})");
+            }
+            else if (((MouseEventArgs)e).Button == MouseButtons.Left && selectedShapeType == "Треугольник")
+            {
+                // Получаем координаты клика
+                Point clickPoint = this.PointToClient(Cursor.Position);
+
+
+                CTriangle newTriangle = new CTriangle(clickPoint.X, clickPoint.Y);
+
+                // Добавляем круг в контейнер
+                shapes.Add(newTriangle);
+
+                // Перерисовываем форму
+                this.Invalidate();
+
+                // Выводим информацию в консоль (для отладки)
+                Console.WriteLine($"Создан новый треугольник в ({clickPoint.X}, {clickPoint.Y})");
             }
         }
 
