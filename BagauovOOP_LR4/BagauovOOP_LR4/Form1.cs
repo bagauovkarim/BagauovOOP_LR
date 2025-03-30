@@ -117,7 +117,7 @@ namespace BagauovOOP_LR4
             {
                 Position = new Point(x, y);
                 Name = "Прямоугольник";
-                Size = new Size(40, 60);
+                Size = new Size(60, 40);
                 FillColor = Color.White; // Белая заливка по умолчанию
             }
 
@@ -129,8 +129,8 @@ namespace BagauovOOP_LR4
 
                 int Height = Size.Height;
                 int Width = Size.Width;
-                g.FillRectangle(brush, Position.X, Position.Y, Height, Width);
-                g.DrawRectangle(pen, Position.X, Position.Y, Height, Width);
+                g.FillRectangle(brush, Position.X - Width / 2, Position.Y - Height / 2, Width, Height);
+                g.DrawRectangle(pen, Position.X - Width / 2, Position.Y - Height / 2, Width, Height);
 
                 pen.Dispose();
                 brush.Dispose();
@@ -177,13 +177,28 @@ namespace BagauovOOP_LR4
 
         public class CTriangle : CShape
         {
+            
+            private PointF[] _points = new PointF[3];
             public CTriangle(int x, int y)
             {
+                
                 Position = new Point(x, y);
-                Name = "Прямоугольник";
-                Size = new Size(40, 60);
+                Name = "Треугольник";
+                Size = new Size(60, 60);
                 FillColor = Color.White; // Белая заливка по умолчанию
+                CalculatePoints();
             }
+
+            private void CalculatePoints()
+            {
+                _points = new PointF[3];
+
+                _points[0] = new PointF(Position.X - Size.Width / 2, Position.Y + Size.Height / 2);
+                _points[1] = new PointF(Position.X + Size.Width / 2, Position.Y + Size.Height / 2);
+                _points[2] = new PointF(Position.X, Position.Y - Size.Height / 2);
+                
+            }
+
 
             public override void Draw(Graphics g)
             {
@@ -191,10 +206,9 @@ namespace BagauovOOP_LR4
                 Pen pen = new Pen(Color.Black, IsSelected ? 2 : 1);
                 Brush brush = new SolidBrush(FillColor);
 
-                int Height = Size.Height;
-                int Width = Size.Width;
-                g.FillRectangle(brush, Position.X, Position.Y, Height, Width);
-                g.DrawRectangle(pen, Position.X, Position.Y, Height, Width);
+                
+                g.FillPolygon(brush,_points);
+                g.DrawPolygon(pen, _points);
 
                 pen.Dispose();
                 brush.Dispose();
@@ -239,15 +253,121 @@ namespace BagauovOOP_LR4
             }
         }
 
-        /*public class CEllipse : CShape
+        public class CEllipse : CShape
         {
 
-        }*/
+            public CEllipse(int x, int y)
+            {
+                Position = new Point(x, y);
+                Name = "Эллипс";
+                Size = new Size(70, 50);
+                FillColor = Color.White; // Белая заливка по умолчанию
+            }
 
-        /*public class CLine : CShape
+            public override void Draw(Graphics g)
+            {
+                // Черный контур (как в исходном коде)
+                Pen pen = new Pen(Color.Black, IsSelected ? 2 : 1);
+                Brush brush = new SolidBrush(FillColor);
+
+                g.FillEllipse(brush, Position.X - Size.Width / 2, Position.Y - Size.Height / 2, Size.Width, Size.Height);
+                g.DrawEllipse(pen, Position.X - Size.Width / 2, Position.Y - Size.Height / 2, Size.Width, Size.Height);
+
+                pen.Dispose();
+                brush.Dispose();
+
+                if (IsSelected)
+                {
+                    // Синяя пунктирная рамка выделения
+                    Pen selectionPen = new Pen(Color.Blue, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
+                    var bounds = GetBoundingBox();
+                    bounds.Inflate(5, 5);
+                    g.DrawRectangle(selectionPen, bounds);
+                    selectionPen.Dispose();
+                }
+            }
+
+            public override bool Contains(Point point)
+            {
+                return true;
+            }
+
+            public override Rectangle GetBoundingBox()
+            {
+                return new Rectangle();
+            }
+
+
+            public override void Select()
+            {
+                base.Select();
+                FillColor = Color.Red; // Красная заливка при выделении
+            }
+
+            public override void Deselect()
+            {
+                base.Deselect();
+                FillColor = Color.White; // Белая заливка при снятии выделения
+            }
+        }
+
+        public class CLine : CShape
         {
+        public CLine(int x, int y)
+            {
+                Position = new Point(x, y);
+                Name = "Линия";
+                Size = new Size(100, 0);
+                FillColor = Color.White; // Белая заливка по умолчанию
+            }
 
-        }*/
+            public override void Draw(Graphics g)
+            {
+                // Черный контур (как в исходном коде)
+                Pen pen = new Pen(Color.Black, IsSelected ? 2 : 1);
+                Brush brush = new SolidBrush(FillColor);
+
+                
+                g.DrawLine(pen, Position.X - Size.Width / 2, Position.Y, Position.X + Size.Width / 2, Position.Y + Size.Height);
+
+                pen.Dispose();
+                brush.Dispose();
+
+                if (IsSelected)
+                {
+                    // Синяя пунктирная рамка выделения
+                    Pen selectionPen = new Pen(Color.Blue, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
+                    var bounds = GetBoundingBox();
+                    bounds.Inflate(5, 5);
+                    g.DrawRectangle(selectionPen, bounds);
+                    selectionPen.Dispose();
+                }
+            }
+
+            public override bool Contains(Point point)
+            {
+                return true;
+            }
+
+            public override Rectangle GetBoundingBox()
+            {
+                return new Rectangle();
+            }
+
+
+            public override void Select()
+            {
+                base.Select();
+                FillColor = Color.Red; // Красная заливка при выделении
+            }
+
+            public override void Deselect()
+            {
+                base.Deselect();
+                FillColor = Color.White; // Белая заливка при снятии выделения
+            }
+        
+        }
 
         public class CCircle : CShape
         {
@@ -430,6 +550,7 @@ namespace BagauovOOP_LR4
                 // Выводим информацию в консоль (для отладки)
                 Console.WriteLine($"Создан новый круг в ({clickPoint.X}, {clickPoint.Y})");
             }
+            
             else if (((MouseEventArgs)e).Button == MouseButtons.Left && selectedShapeType == "Прямоугольник")
             {
                 // Получаем координаты клика
@@ -447,6 +568,7 @@ namespace BagauovOOP_LR4
                 // Выводим информацию в консоль (для отладки)
                 Console.WriteLine($"Создан новый прямоугольник в ({clickPoint.X}, {clickPoint.Y})");
             }
+            
             else if (((MouseEventArgs)e).Button == MouseButtons.Left && selectedShapeType == "Треугольник")
             {
                 // Получаем координаты клика
@@ -463,6 +585,42 @@ namespace BagauovOOP_LR4
 
                 // Выводим информацию в консоль (для отладки)
                 Console.WriteLine($"Создан новый треугольник в ({clickPoint.X}, {clickPoint.Y})");
+            }
+
+            else if (((MouseEventArgs)e).Button == MouseButtons.Left && selectedShapeType == "Эллипс")
+            {
+                // Получаем координаты клика
+                Point clickPoint = this.PointToClient(Cursor.Position);
+
+
+                CEllipse newEllipse = new CEllipse(clickPoint.X, clickPoint.Y);
+
+                // Добавляем круг в контейнер
+                shapes.Add(newEllipse);
+
+                // Перерисовываем форму
+                this.Invalidate();
+
+                // Выводим информацию в консоль (для отладки)
+                Console.WriteLine($"Создан новый эллипс в ({clickPoint.X}, {clickPoint.Y})");
+            }
+
+            else if (((MouseEventArgs)e).Button == MouseButtons.Left && selectedShapeType == "Линия")
+            {
+                // Получаем координаты клика
+                Point clickPoint = this.PointToClient(Cursor.Position);
+
+
+                CLine newLine = new CLine(clickPoint.X, clickPoint.Y);
+
+                // Добавляем круг в контейнер
+                shapes.Add(newLine);
+
+                // Перерисовываем форму
+                this.Invalidate();
+
+                // Выводим информацию в консоль (для отладки)
+                Console.WriteLine($"Создана новая линия в ({clickPoint.X}, {clickPoint.Y})");
             }
         }
 

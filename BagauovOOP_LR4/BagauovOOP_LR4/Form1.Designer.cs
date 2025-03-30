@@ -34,30 +34,36 @@
             this.circleTool = new System.Windows.Forms.PictureBox();
             this.triangleTool = new System.Windows.Forms.PictureBox();
             this.lineTool = new System.Windows.Forms.PictureBox();
+            this.ColorTool = new System.Windows.Forms.PictureBox();
             this.ellipseTool = new System.Windows.Forms.PictureBox();
+            this.Cursortool = new System.Windows.Forms.PictureBox();
             this.toolboxPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.rectangleTool)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.circleTool)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.triangleTool)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.lineTool)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ColorTool)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ellipseTool)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.Cursortool)).BeginInit();
             this.SuspendLayout();
             // 
             // toolboxPanel
             // 
             this.toolboxPanel.AutoScroll = true;
             this.toolboxPanel.BackColor = System.Drawing.Color.LightGray;
+            this.toolboxPanel.Controls.Add(this.Cursortool);
+            this.toolboxPanel.Controls.Add(this.ColorTool);
+            this.toolboxPanel.Controls.Add(this.ellipseTool);
             this.toolboxPanel.Controls.Add(this.rectangleTool);
             this.toolboxPanel.Controls.Add(this.circleTool);
             this.toolboxPanel.Controls.Add(this.triangleTool);
             this.toolboxPanel.Controls.Add(this.lineTool);
-            this.toolboxPanel.Controls.Add(this.ellipseTool);
             this.toolboxPanel.Dock = System.Windows.Forms.DockStyle.Left;
             this.toolboxPanel.Location = new System.Drawing.Point(0, 0);
             this.toolboxPanel.Margin = new System.Windows.Forms.Padding(5);
             this.toolboxPanel.Name = "toolboxPanel";
             this.toolboxPanel.Padding = new System.Windows.Forms.Padding(5);
-            this.toolboxPanel.Size = new System.Drawing.Size(70, 450);
+            this.toolboxPanel.Size = new System.Drawing.Size(70, 521);
             this.toolboxPanel.TabIndex = 0;
             // 
             // rectangleTool
@@ -66,7 +72,7 @@
             this.rectangleTool.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.rectangleTool.Cursor = System.Windows.Forms.Cursors.Hand;
             this.rectangleTool.Image = ((System.Drawing.Image)(resources.GetObject("rectangleTool.Image")));
-            this.rectangleTool.Location = new System.Drawing.Point(8, 8);
+            this.rectangleTool.Location = new System.Drawing.Point(8, 197);
             this.rectangleTool.Margin = new System.Windows.Forms.Padding(3, 3, 3, 10);
             this.rectangleTool.Name = "rectangleTool";
             this.rectangleTool.Size = new System.Drawing.Size(50, 50);
@@ -81,7 +87,7 @@
             this.circleTool.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.circleTool.Cursor = System.Windows.Forms.Cursors.Hand;
             this.circleTool.Image = ((System.Drawing.Image)(resources.GetObject("circleTool.Image")));
-            this.circleTool.Location = new System.Drawing.Point(8, 71);
+            this.circleTool.Location = new System.Drawing.Point(8, 260);
             this.circleTool.Margin = new System.Windows.Forms.Padding(3, 3, 3, 10);
             this.circleTool.Name = "circleTool";
             this.circleTool.Size = new System.Drawing.Size(50, 50);
@@ -96,7 +102,7 @@
             this.triangleTool.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.triangleTool.Cursor = System.Windows.Forms.Cursors.Hand;
             this.triangleTool.Image = ((System.Drawing.Image)(resources.GetObject("triangleTool.Image")));
-            this.triangleTool.Location = new System.Drawing.Point(8, 134);
+            this.triangleTool.Location = new System.Drawing.Point(8, 323);
             this.triangleTool.Margin = new System.Windows.Forms.Padding(3, 3, 3, 10);
             this.triangleTool.Name = "triangleTool";
             this.triangleTool.Size = new System.Drawing.Size(50, 50);
@@ -111,7 +117,7 @@
             this.lineTool.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.lineTool.Cursor = System.Windows.Forms.Cursors.Hand;
             this.lineTool.Image = ((System.Drawing.Image)(resources.GetObject("lineTool.Image")));
-            this.lineTool.Location = new System.Drawing.Point(8, 197);
+            this.lineTool.Location = new System.Drawing.Point(8, 386);
             this.lineTool.Margin = new System.Windows.Forms.Padding(3, 3, 3, 10);
             this.lineTool.Name = "lineTool";
             this.lineTool.Size = new System.Drawing.Size(50, 50);
@@ -120,26 +126,56 @@
             this.lineTool.TabStop = false;
             this.lineTool.Tag = "Линия";
             // 
+            // ColorTool
+            // 
+            this.ColorTool.BackColor = System.Drawing.Color.White;
+            this.ColorTool.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.ColorTool.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.ColorTool.Image = ((System.Drawing.Image)(resources.GetObject("ColorTool.Image")));
+            this.ColorTool.Location = new System.Drawing.Point(8, 71);
+            this.ColorTool.Margin = new System.Windows.Forms.Padding(3, 3, 3, 10);
+            this.ColorTool.Name = "ColorTool";
+            this.ColorTool.Size = new System.Drawing.Size(50, 50);
+            this.ColorTool.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.ColorTool.TabIndex = 4;
+            this.ColorTool.TabStop = false;
+            this.ColorTool.Tag = "Цвет";
+            // 
             // ellipseTool
             // 
             this.ellipseTool.BackColor = System.Drawing.Color.White;
             this.ellipseTool.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.ellipseTool.Cursor = System.Windows.Forms.Cursors.Hand;
             this.ellipseTool.Image = ((System.Drawing.Image)(resources.GetObject("ellipseTool.Image")));
-            this.ellipseTool.Location = new System.Drawing.Point(8, 260);
+            this.ellipseTool.Location = new System.Drawing.Point(8, 134);
             this.ellipseTool.Margin = new System.Windows.Forms.Padding(3, 3, 3, 10);
             this.ellipseTool.Name = "ellipseTool";
             this.ellipseTool.Size = new System.Drawing.Size(50, 50);
             this.ellipseTool.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.ellipseTool.TabIndex = 4;
+            this.ellipseTool.TabIndex = 5;
             this.ellipseTool.TabStop = false;
             this.ellipseTool.Tag = "Эллипс";
+            // 
+            // Cursortool
+            // 
+            this.Cursortool.BackColor = System.Drawing.Color.White;
+            this.Cursortool.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.Cursortool.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.Cursortool.Image = ((System.Drawing.Image)(resources.GetObject("Cursortool.Image")));
+            this.Cursortool.Location = new System.Drawing.Point(8, 8);
+            this.Cursortool.Margin = new System.Windows.Forms.Padding(3, 3, 3, 10);
+            this.Cursortool.Name = "Cursortool";
+            this.Cursortool.Size = new System.Drawing.Size(50, 50);
+            this.Cursortool.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.Cursortool.TabIndex = 6;
+            this.Cursortool.TabStop = false;
+            this.Cursortool.Tag = "Курсор";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(800, 521);
             this.Controls.Add(this.toolboxPanel);
             this.Name = "Form1";
             this.Text = "Графический редактор";
@@ -150,7 +186,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.circleTool)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.triangleTool)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.lineTool)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ColorTool)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ellipseTool)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.Cursortool)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -162,6 +200,8 @@
         private System.Windows.Forms.PictureBox circleTool;
         private System.Windows.Forms.PictureBox triangleTool;
         private System.Windows.Forms.PictureBox lineTool;
+        private System.Windows.Forms.PictureBox ColorTool;
         private System.Windows.Forms.PictureBox ellipseTool;
+        private System.Windows.Forms.PictureBox Cursortool;
     }
 }
