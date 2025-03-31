@@ -11,11 +11,13 @@ namespace BagauovOOP_LR4
         private ShapeContainer shapes = new ShapeContainer();
         
         private string selectedShapeType = "";
+        private Color selectedColor = Color.Black; // Цвет по умолчанию
+        private bool isColorToolActive = false;
+
 
         public Form1()
         {
             InitializeComponent();
-            this.DoubleBuffered = true;
             InitializeToolboxEvents();
         }
 
@@ -27,6 +29,11 @@ namespace BagauovOOP_LR4
                 {
                     tool.Click += (s, e) =>
                     {
+                        if (tool.Tag.ToString() != "Цвет") // Не сбрасываем, если выбрали ColorTool
+                        {
+                            DisableColorMode(); // Сбрасываем режим цвета только при смене инструмента
+                        }
+                        
                         selectedShapeType = tool.Tag.ToString();
                         foreach (Control ct in toolboxPanel.Controls)
                             ct.BackColor = Color.White;
@@ -51,8 +58,31 @@ namespace BagauovOOP_LR4
             public Point Position { get; set; }
             public Size Size { get; set; }
             public Color FillColor { get; set; } = Color.White;
-            public bool IsSelected { get; set; }
             public string Name { get; set; } = "Фигура";
+            
+            public bool isSelected = false;
+            
+            
+            // Метод для выделения фигуры
+            public virtual void Select()
+            {
+                isSelected = true;  // Устанавливаем флаг выделения
+            }
+
+            // Метод для снятия выделения
+            public virtual void Deselect()
+            {
+                isSelected = false;  // Снимаем выделение
+                FillColor = Color.White;
+            }
+
+            // Метод для проверки, выделена ли фигура
+            public bool IsSelected()
+            {
+                return isSelected;  // Возвращаем состояние флага выделения
+            }
+
+
 
             // Абстрактные методы (должны быть реализованы в наследниках)
             public abstract void Draw(Graphics g);
@@ -70,22 +100,10 @@ namespace BagauovOOP_LR4
                 Size = newSize;
             }
 
-            public virtual void Select()
-            {
-                IsSelected = true;
-                FillColor = Color.Red; // Выделение красной рамкой
-                
-            }
-
-            public virtual void Deselect()
-            {
-                IsSelected = false;
-                FillColor = Color.White;
-                
-            }
+            
 
             // Общие методы для всех фигур
-            public void ChangeFillColor(Color newColor)
+            public void SetColor(Color newColor)
             {
                 FillColor = newColor;
             }
@@ -98,7 +116,7 @@ namespace BagauovOOP_LR4
 
             public virtual void DrawSelection(Graphics g)
             {
-                if (IsSelected)
+                if (isSelected)
                 {
                     using (var pen = new Pen(Color.DarkBlue, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash })
                     {
@@ -108,6 +126,7 @@ namespace BagauovOOP_LR4
                     }
                 }
             }
+            
         }
 
         public class CRectangle : CShape
@@ -124,7 +143,7 @@ namespace BagauovOOP_LR4
             public override void Draw(Graphics g)
             {
                 // Черный контур (как в исходном коде)
-                Pen pen = new Pen(Color.Black, IsSelected ? 2 : 1);
+                Pen pen = new Pen(Color.Black);
                 Brush brush = new SolidBrush(FillColor);
 
                 int Height = Size.Height;
@@ -135,25 +154,21 @@ namespace BagauovOOP_LR4
                 pen.Dispose();
                 brush.Dispose();
 
-                if (IsSelected)
-                {
-                    // Синяя пунктирная рамка выделения
-                    Pen selectionPen = new Pen(Color.Blue, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
-                    var bounds = GetBoundingBox();
-                    bounds.Inflate(5, 5);
-                    g.DrawRectangle(selectionPen, bounds);
-                    selectionPen.Dispose();
-                }
+               
             }
 
             public override bool Contains(Point point)
             {
-                if (point.X > Position.X && point.X < Position.X + Size.Width && point.Y > Position.Y && point.Y < Position.Y + Size.Height)
+                int height = Size.Height;
+                int width = Size.Width;
+
+                // Проверка попадания по прямоугольнику с учетом его смещения относительно центра
+                if (point.X > Position.X - width / 2 && point.X < Position.X + width / 2 &&
+                    point.Y > Position.Y - height / 2 && point.Y < Position.Y + height / 2)
                 {
                     return true;
                 }
-                else
-                    return false;
+                return false;
             }
 
             public override Rectangle GetBoundingBox()
@@ -165,13 +180,13 @@ namespace BagauovOOP_LR4
             public override void Select()
             {
                 base.Select();
-                FillColor = Color.Red; // Красная заливка при выделении
+               
             }
 
             public override void Deselect()
             {
                 base.Deselect();
-                FillColor = Color.White; // Белая заливка при снятии выделения
+               
             }
         }
 
@@ -203,7 +218,7 @@ namespace BagauovOOP_LR4
             public override void Draw(Graphics g)
             {
                 // Черный контур (как в исходном коде)
-                Pen pen = new Pen(Color.Black, IsSelected ? 2 : 1);
+                Pen pen = new Pen(Color.Black);
                 Brush brush = new SolidBrush(FillColor);
 
                 
@@ -213,26 +228,39 @@ namespace BagauovOOP_LR4
                 pen.Dispose();
                 brush.Dispose();
 
-                if (IsSelected)
-                {
-                    // Синяя пунктирная рамка выделения
-                    Pen selectionPen = new Pen(Color.Blue, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
-                    var bounds = GetBoundingBox();
-                    bounds.Inflate(5, 5);
-                    g.DrawRectangle(selectionPen, bounds);
-                    selectionPen.Dispose();
-                }
+               
+            }
+
+
+            private float Sign(PointF p1, PointF p2, PointF p3)
+            {
+                return (p1.X - p3.X) * (p2.Y - p3.Y) - (p2.X - p3.X) * (p1.Y - p3.Y);
             }
 
             public override bool Contains(Point point)
             {
-                if (point.X > Position.X && point.X < Position.X + Size.Width && point.Y > Position.Y && point.Y < Position.Y + Size.Height)
-                {
+                // Получаем координаты вершин треугольника
+                PointF A = _points[0];
+                PointF B = _points[1];
+                PointF C = _points[2];
+
+                // Вычисляем знаки для каждой стороны треугольника
+                float d1 = Sign(point, A, B);
+                float d2 = Sign(point, B, C);
+                float d3 = Sign(point, C, A);
+
+                // Проверяем, все ли знаки положительные или все отрицательные.
+                
+                if ((d1 > 0 && d2 > 0 && d3 > 0) || (d1 < 0 && d2 < 0 && d3 < 0)) {
                     return true;
                 }
                 else
                     return false;
+
+
             }
+
+            
 
             public override Rectangle GetBoundingBox()
             {
@@ -243,13 +271,13 @@ namespace BagauovOOP_LR4
             public override void Select()
             {
                 base.Select();
-                FillColor = Color.Red; // Красная заливка при выделении
+                
             }
 
             public override void Deselect()
             {
                 base.Deselect();
-                FillColor = Color.White; // Белая заливка при снятии выделения
+                
             }
         }
 
@@ -267,7 +295,7 @@ namespace BagauovOOP_LR4
             public override void Draw(Graphics g)
             {
                 // Черный контур (как в исходном коде)
-                Pen pen = new Pen(Color.Black, IsSelected ? 2 : 1);
+                Pen pen = new Pen(Color.Black);
                 Brush brush = new SolidBrush(FillColor);
 
                 g.FillEllipse(brush, Position.X - Size.Width / 2, Position.Y - Size.Height / 2, Size.Width, Size.Height);
@@ -276,20 +304,25 @@ namespace BagauovOOP_LR4
                 pen.Dispose();
                 brush.Dispose();
 
-                if (IsSelected)
-                {
-                    // Синяя пунктирная рамка выделения
-                    Pen selectionPen = new Pen(Color.Blue, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
-                    var bounds = GetBoundingBox();
-                    bounds.Inflate(5, 5);
-                    g.DrawRectangle(selectionPen, bounds);
-                    selectionPen.Dispose();
-                }
+                
             }
 
             public override bool Contains(Point point)
             {
-                return true;
+                double a = Size.Width / 2.0;  // Радиус по X
+                double b = Size.Height / 2.0; // Радиус по Y
+                double centerX = Position.X;
+                double centerY = Position.Y;
+
+                double normalizedX = (point.X - centerX) * (point.X - centerX) / (a * a);
+                double normalizedY = (point.Y - centerY) * (point.Y - centerY) / (b * b);
+
+                if (normalizedX + normalizedY <= 1)
+                {
+                    return true;
+                }
+                else
+                    return false;
             }
 
             public override Rectangle GetBoundingBox()
@@ -301,13 +334,13 @@ namespace BagauovOOP_LR4
             public override void Select()
             {
                 base.Select();
-                FillColor = Color.Red; // Красная заливка при выделении
+                
             }
 
             public override void Deselect()
             {
                 base.Deselect();
-                FillColor = Color.White; // Белая заливка при снятии выделения
+                
             }
         }
 
@@ -318,13 +351,13 @@ namespace BagauovOOP_LR4
                 Position = new Point(x, y);
                 Name = "Линия";
                 Size = new Size(100, 0);
-                FillColor = Color.White; // Белая заливка по умолчанию
+                FillColor = Color.Black; // Белая заливка по умолчанию
             }
 
             public override void Draw(Graphics g)
             {
                 // Черный контур (как в исходном коде)
-                Pen pen = new Pen(Color.Black, IsSelected ? 2 : 1);
+                Pen pen = new Pen(FillColor);
                 Brush brush = new SolidBrush(FillColor);
 
                 
@@ -333,20 +366,22 @@ namespace BagauovOOP_LR4
                 pen.Dispose();
                 brush.Dispose();
 
-                if (IsSelected)
-                {
-                    // Синяя пунктирная рамка выделения
-                    Pen selectionPen = new Pen(Color.Blue, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
-                    var bounds = GetBoundingBox();
-                    bounds.Inflate(5, 5);
-                    g.DrawRectangle(selectionPen, bounds);
-                    selectionPen.Dispose();
-                }
+                
             }
 
             public override bool Contains(Point point)
             {
-                return true;
+                int x1 = Position.X - Size.Width / 2; // Левая точка линии
+                int x2 = Position.X + Size.Width / 2; // Правая точка линии
+                int y = Position.Y; // Высота линии
+
+                // Проверяем, находится ли точка на той же высоте и внутри диапазона X
+                if ((point.Y >= y - 2 && point.Y <= y + 2) && (point.X >= x1 && point.X <= x2)) {
+                    
+                    return true;
+                }
+                else
+                    return false;
             }
 
             public override Rectangle GetBoundingBox()
@@ -358,13 +393,14 @@ namespace BagauovOOP_LR4
             public override void Select()
             {
                 base.Select();
-                FillColor = Color.Red; // Красная заливка при выделении
+                
             }
 
             public override void Deselect()
             {
                 base.Deselect();
-                FillColor = Color.White; // Белая заливка при снятии выделения
+                FillColor = Color.Black;
+               
             }
         
         }
@@ -388,7 +424,7 @@ namespace BagauovOOP_LR4
             public override void Draw(Graphics g)
             {
                 // Черный контур (как в исходном коде)
-                Pen pen = new Pen(Color.Black, IsSelected ? 2 : 1);
+                Pen pen = new Pen(Color.Black);
                 Brush brush = new SolidBrush(FillColor);
 
                 int diameter = Size.Width;
@@ -398,15 +434,7 @@ namespace BagauovOOP_LR4
                 pen.Dispose();
                 brush.Dispose();
 
-                if (IsSelected)
-                {
-                    // Синяя пунктирная рамка выделения
-                    Pen selectionPen = new Pen(Color.Blue, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
-                    var bounds = GetBoundingBox();
-                    bounds.Inflate(5, 5);
-                    g.DrawRectangle(selectionPen, bounds);
-                    selectionPen.Dispose();
-                }
+                
             }
 
             public override bool Contains(Point point)
@@ -429,13 +457,13 @@ namespace BagauovOOP_LR4
             public override void Select()
             {
                 base.Select();
-                FillColor = Color.Red; // Красная заливка при выделении
+                
             }
 
             public override void Deselect()
             {
                 base.Deselect();
-                FillColor = Color.White; // Белая заливка при снятии выделения
+               
             }
         }
 
@@ -455,7 +483,7 @@ namespace BagauovOOP_LR4
             {
                 for (int i = shapes.Count - 1; i >= 0; i--)
                 {
-                    if (shapes[i].IsSelected)
+                    if (shapes[i].IsSelected())
                     {
                         shapes.RemoveAt(i);
                     }
@@ -489,7 +517,7 @@ namespace BagauovOOP_LR4
                 int count = 0;
                 for (int i = 0; i < shapes.Count; i++)
                 {
-                    if (shapes[i].IsSelected)
+                    if (shapes[i].IsSelected())
                     {
                         count++;
                     }
@@ -530,8 +558,9 @@ namespace BagauovOOP_LR4
             }
         }
 
-        private void Form1_Click(object sender, EventArgs e)
+        private void Form1_MouseClick(object sender, MouseEventArgs e)
         {
+
             // Проверяем, что клик был левой кнопкой мыши и выбран инструмент "Круг"
             if (((MouseEventArgs)e).Button == MouseButtons.Left && selectedShapeType == "Круг")
             {
@@ -550,13 +579,11 @@ namespace BagauovOOP_LR4
                 // Выводим информацию в консоль (для отладки)
                 Console.WriteLine($"Создан новый круг в ({clickPoint.X}, {clickPoint.Y})");
             }
-            
+
             else if (((MouseEventArgs)e).Button == MouseButtons.Left && selectedShapeType == "Прямоугольник")
             {
                 // Получаем координаты клика
                 Point clickPoint = this.PointToClient(Cursor.Position);
-
-                
                 CRectangle newRectangle = new CRectangle(clickPoint.X, clickPoint.Y);
 
                 // Добавляем круг в контейнер
@@ -568,7 +595,7 @@ namespace BagauovOOP_LR4
                 // Выводим информацию в консоль (для отладки)
                 Console.WriteLine($"Создан новый прямоугольник в ({clickPoint.X}, {clickPoint.Y})");
             }
-            
+
             else if (((MouseEventArgs)e).Button == MouseButtons.Left && selectedShapeType == "Треугольник")
             {
                 // Получаем координаты клика
@@ -599,7 +626,7 @@ namespace BagauovOOP_LR4
                 shapes.Add(newEllipse);
 
                 // Перерисовываем форму
-                this.Invalidate();
+                
 
                 // Выводим информацию в консоль (для отладки)
                 Console.WriteLine($"Создан новый эллипс в ({clickPoint.X}, {clickPoint.Y})");
@@ -622,28 +649,140 @@ namespace BagauovOOP_LR4
                 // Выводим информацию в консоль (для отладки)
                 Console.WriteLine($"Создана новая линия в ({clickPoint.X}, {clickPoint.Y})");
             }
-        }
 
-        private void Form1_Paint(object sender, PaintEventArgs e)
-        {
+
+
+
+            bool clickedOnShape = false;
+
             for (shapes.First(); !shapes.EOL(); shapes.Next())
             {
-                CShape currentShape = shapes.GetCurrent();
+                CShape shape = shapes.GetCurrent();
 
-                // Проверяем, что фигура существует (защита от null)
-                if (currentShape != null)
+                if (shape.Contains(e.Location))
                 {
-                    try
+                    clickedOnShape = true;
+
+                    // Если активен инструмент выбора цвета
+                    if (isColorToolActive)
                     {
-                        currentShape.Draw(e.Graphics);
+                        // Если фигура уже окрашена в выбранный цвет, сбрасываем в белый
+                        if (shape.FillColor == selectedColor)
+                        {
+                            if (shape is CLine)
+                            {
+                                shape.FillColor = Color.Black;
+                            }
+                            else
+                                shape.FillColor = Color.White;
+                        }
+                        else
+                        {
+                            shape.FillColor = selectedColor;
+                        }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        // Обработка ошибок рисования (можно заменить на логирование)
-                        Console.WriteLine($"Ошибка при рисовании фигуры: {ex.Message}");
+                        // Обычное выделение фигуры
+                        if (shape.IsSelected())
+                        {
+                            shape.Deselect();
+                        }
+                        else
+                        {
+                            shape.Select();
+                        }
+                    }
+                    break;
+                }
+            }
+
+            if (!clickedOnShape)
+            {
+                if (shapes.GetSelectedCount() > 0)
+                {
+                    // Снимаем выделение со всех фигур
+                    shapes.DeselectAll();
+                }
+                else
+                {
+                    // Добавляем новую фигуру
+                    CShape newShape = null;
+                    switch (selectedShapeType)
+                    {
+                        case "Круг":
+                            newShape = new CCircle(e.X, e.Y, 30);
+                            break;
+                        case "Прямоугольник":
+                            newShape = new CRectangle(e.X, e.Y);
+                            break;
+                        case "Треугольник":
+                            newShape = new CTriangle(e.X, e.Y);
+                            break;
+                        case "Эллипс":
+                            newShape = new CEllipse(e.X, e.Y);
+                            break;
+                        case "Линия":
+                            newShape = new CLine(e.X, e.Y);
+                            break;
+                    }
+
+                    if (newShape != null)
+                    {
+                        shapes.Add(newShape);
                     }
                 }
             }
+            if (selectedShapeType == "Курсор" && !clickedOnShape)
+            {
+                for (shapes.First(); !shapes.EOL(); shapes.Next())
+                {
+                    shapes.GetCurrent().Deselect();
+                }
+            }
+
+
+            this.Invalidate(); // Перерисовываем форму
+        }
+        
+        private void Form1_Paint(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            for (shapes.First(); !shapes.EOL(); shapes.Next())
+            {
+                CShape currentShape = shapes.GetCurrent();
+                currentShape.Draw(g);
+
+                
+            }
+
+        }
+
+
+        private void DisableColorMode()
+        {
+            isColorToolActive = false;
+        }
+
+        private void ColorTool_Click(object sender, EventArgs e)
+        {
+            isColorToolActive = true;
+            using (ColorDialog colorDialog = new ColorDialog())
+            {
+                if (colorDialog1.ShowDialog() == DialogResult.OK)
+                {
+
+                    selectedColor = colorDialog1.Color;
+
+                }
+            }
+            
+        }
+
+        private void Cursortool_Click(object sender, EventArgs e)
+        {
+            this.Cursor = Cursors.Default;
+            
         }
     }
 }
