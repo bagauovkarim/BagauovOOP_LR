@@ -11,7 +11,9 @@ namespace BagauovOOP_LR4
         private ShapeContainer shapes = new ShapeContainer();
         
         private string selectedShapeType = "";
-        private Color selectedColor = Color.Black; // Цвет по умолчанию
+        private Color selectedColor = Color.White; // Цвет по умолчанию
+        private Color currentLineColor = Color.Black;
+        private bool isLineColorChanged = false;
         private bool isColorMode = false;
         private bool RectangleSelection = false;  // Флаг для отслеживания процесса выделения
         private Point selectionStartPoint; // Начальная точка выделения
@@ -21,6 +23,10 @@ namespace BagauovOOP_LR4
         private bool isChangingPosition = false;
         private Point changePositionStartPoint;
         private bool wasChangingPosition = false;
+        private bool isResizing = false;
+        private Point resizeStartPoint;
+        private Size originalSize;
+        private int resizeHandle = -1;
 
 
         public Form1()
@@ -66,7 +72,7 @@ namespace BagauovOOP_LR4
         void Deselect();
         void Resize(Size newSize);
         void Move(int dx, int dy);
-      
+        int GetResizeHandle(Point point);
     }
 
 
@@ -133,21 +139,67 @@ namespace BagauovOOP_LR4
        }
 
        public virtual void DrawSelection(Graphics g)
-       {
-           if (isSelected)
-           {
-               using (var pen = new Pen(Color.DarkBlue, 2) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash })
-               {
-                   var bounds = GetBoundingBox();
-                   bounds.Inflate(5, 5);
-                   g.DrawRectangle(pen, bounds);
-               }
-           }
-       }
+            {
+                if (isSelected)
+                {
+                    using (var pen = new Pen(Color.DarkBlue, 2) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash })
+                    {
+                        var bounds = GetBoundingBox();
+                        bounds.Inflate(5, 5);
+                        g.DrawRectangle(pen, bounds);
 
-        
-            
-    }
+                        // Рисуем угловые маркеры
+                        int handleSize = 8;
+                        Brush brush = Brushes.White;
+
+                        // Левый верхний
+                        g.FillRectangle(brush, bounds.Left - handleSize / 2, bounds.Top - handleSize / 2, handleSize, handleSize);
+                        g.DrawRectangle(Pens.Black, bounds.Left - handleSize / 2, bounds.Top - handleSize / 2, handleSize, handleSize);
+
+                        // Правый верхний
+                        g.FillRectangle(brush, bounds.Right - handleSize / 2, bounds.Top - handleSize / 2, handleSize, handleSize);
+                        g.DrawRectangle(Pens.Black, bounds.Right - handleSize / 2, bounds.Top - handleSize / 2, handleSize, handleSize);
+
+                        // Правый нижний
+                        g.FillRectangle(brush, bounds.Right - handleSize / 2, bounds.Bottom - handleSize / 2, handleSize, handleSize);
+                        g.DrawRectangle(Pens.Black, bounds.Right - handleSize / 2, bounds.Bottom - handleSize / 2, handleSize, handleSize);
+
+                        // Левый нижний
+                        g.FillRectangle(brush, bounds.Left - handleSize / 2, bounds.Bottom - handleSize / 2, handleSize, handleSize);
+                        g.DrawRectangle(Pens.Black, bounds.Left - handleSize / 2, bounds.Bottom - handleSize / 2, handleSize, handleSize);
+                    }
+                }
+            }
+
+       public virtual int GetResizeHandle(Point point)
+            {
+                if (!isSelected) return -1;
+
+                var bounds = GetBoundingBox();
+                bounds.Inflate(5, 5); // То же самое, что и при отрисовке рамки
+
+                int handleSize = 8; // Размер углового маркера
+                Rectangle[] handles = new Rectangle[4]
+                {
+        // Левый верхний, правый верхний, правый нижний, левый нижний
+                    new Rectangle(bounds.Left - handleSize/2, bounds.Top - handleSize/2, handleSize, handleSize),
+                    new Rectangle(bounds.Right - handleSize/2, bounds.Top - handleSize/2, handleSize, handleSize),
+                    new Rectangle(bounds.Right - handleSize/2, bounds.Bottom - handleSize/2, handleSize, handleSize),
+                    new Rectangle(bounds.Left - handleSize/2, bounds.Bottom - handleSize/2, handleSize, handleSize)
+                };
+
+                for (int i = 0; i < handles.Length; i++)
+                {
+                    if (handles[i].Contains(point))
+                        return i;
+                }
+
+                return -1;
+            }
+
+
+
+        }
 
         public class CRectangle : CShape
         {
@@ -296,6 +348,12 @@ namespace BagauovOOP_LR4
                 CalculatePoints();         // пересчитываем точки треугольника
             }
 
+            public override void Resize(Size newSize)
+            {
+                base.Resize(newSize);
+                CalculatePoints(); // Пересчитываем точки треугольника при изменении размера
+            }
+
         }
 
         public class CEllipse : CShape
@@ -359,7 +417,7 @@ namespace BagauovOOP_LR4
                 Position = new Point(x, y);
                 Name = "Линия";
                 Size = new Size(100, 0);
-                FillColor = Color.Black; // Белая заливка по умолчанию
+                FillColor = Color.Black; // Черная заливка по умолчанию
             }
 
             public override void Draw(Graphics g)
@@ -403,9 +461,55 @@ namespace BagauovOOP_LR4
                 return new Rectangle(left, top, right - left, bottom - top);
             }
 
+            public override int GetResizeHandle(Point point)
+            {
+                if (!isSelected) return -1;
 
-            
-        
+                var bounds = GetBoundingBox();
+                int handleSize = 8;
+
+                // Только левая и правая точки
+                Rectangle[] handles = new Rectangle[2]
+                {
+            new Rectangle(bounds.Left - handleSize/2, bounds.Top + bounds.Height/2 - handleSize/2, handleSize, handleSize),
+            new Rectangle(bounds.Right - handleSize/2, bounds.Top + bounds.Height/2 - handleSize/2, handleSize, handleSize)
+                };
+
+                for (int i = 0; i < handles.Length; i++)
+                {
+                    if (handles[i].Contains(point))
+                        return i;
+                }
+
+                return -1;
+            }
+
+            public override void DrawSelection(Graphics g)
+            {
+                if (isSelected)
+                {
+                    using (var pen = new Pen(Color.DarkBlue, 2) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash })
+                    {
+                        var bounds = GetBoundingBox();
+                        bounds.Inflate(5, 5);
+                        g.DrawRectangle(pen, bounds);
+
+                        // Рисуем только левый и правый маркеры
+                        int handleSize = 8;
+                        Brush brush = Brushes.White;
+
+                        // Левый маркер
+                        g.FillRectangle(brush, bounds.Left - handleSize / 2, bounds.Top + bounds.Height / 2 - handleSize / 2, handleSize, handleSize);
+                        g.DrawRectangle(Pens.Black, bounds.Left - handleSize / 2, bounds.Top + bounds.Height / 2 - handleSize / 2, handleSize, handleSize);
+
+                        // Правый маркер
+                        g.FillRectangle(brush, bounds.Right - handleSize / 2, bounds.Top + bounds.Height / 2 - handleSize / 2, handleSize, handleSize);
+                        g.DrawRectangle(Pens.Black, bounds.Right - handleSize / 2, bounds.Top + bounds.Height / 2 - handleSize / 2, handleSize, handleSize);
+                    }
+                }
+            }
+
+
         }
 
         public class CCircle : CShape
@@ -644,7 +748,10 @@ namespace BagauovOOP_LR4
                 Point clickPoint = this.PointToClient(Cursor.Position);
 
                 CLine newLine = new CLine(clickPoint.X, clickPoint.Y);
-                newLine.FillColor = currentColorBeforeCursor;
+                if (isLineColorChanged)
+                {
+                    newLine.FillColor = currentLineColor;
+                }
                 // Добавляем линию в контейнер
                 shapes.Add(newLine);
 
@@ -670,23 +777,19 @@ namespace BagauovOOP_LR4
                     // В режиме изменения цвета
                     if (isColorMode)
                     {
-                        // Если фигура уже окрашена в выбранный цвет, сбрасываем цвет
-                        if (shape.FillColor == selectedColor)
+                        if (shape is CLine)
                         {
-                            if (shape is CLine)
-                            {
-                                shape.FillColor = Color.Black; // Линии сбрасываем в чёрный
-                            }
-                            else
-                            {
-                                shape.FillColor = Color.White; // Для остальных фигур сбрасываем в белый
-                            }
+                            // Всегда применяем выбранный цвет к линии
+                            shape.FillColor = selectedColor;
+                            currentLineColor = selectedColor;
+                            isLineColorChanged = true;
                         }
                         else
                         {
-                            // Заливаем фигуру выбранным цветом
-                            shape.FillColor = selectedColor;
+                            // Логика для других фигур
+                            shape.FillColor = shape.FillColor == selectedColor ? Color.White : selectedColor;
                         }
+                        this.Invalidate();
                     }
                     else
                     {
@@ -767,10 +870,10 @@ namespace BagauovOOP_LR4
                 if (colorDialog.ShowDialog() == DialogResult.OK)
                 {
                     selectedColor = colorDialog.Color;
-                    selectedShapeType = "Цвет";
-                    this.Cursor = Cursors.Default;
-                    isColorMode = true; // Включаем режим изменения цвета
-                    shapes.DeselectAll(); // Снимаем выделение с всех фигур при изменении цвета
+                    currentLineColor = selectedColor; // Всегда обновляем текущий цвет линии
+                    isLineColorChanged = true;
+                    isColorMode = true;
+                    this.Invalidate();
                 }
             }
         }
@@ -781,11 +884,28 @@ namespace BagauovOOP_LR4
         {
             if (e.Button == MouseButtons.Left && !ctrlPressed && !isColorMode)
             {
-                // Проверяем, нажал ли пользователь на выделенную фигуру
+                // Проверяем, нажал ли пользователь на угол рамки выделенной фигуры
                 for (shapes.First(); !shapes.EOL(); shapes.Next())
                 {
                     var shape = shapes.GetCurrent();
+                    if (shape.IsSelected())
+                    {
+                        int handle = shape.GetResizeHandle(e.Location);
+                        if (handle != -1)
+                        {
+                            isResizing = true;
+                            resizeHandle = handle;
+                            resizeStartPoint = e.Location;
+                            originalSize = shape.Size;
+                            return;
+                        }
+                    }
+                }
 
+                // Проверяем, нажал ли пользователь на выделенную фигуру (для перемещения)
+                for (shapes.First(); !shapes.EOL(); shapes.Next())
+                {
+                    var shape = shapes.GetCurrent();
                     if (shape.IsSelected() && shape.Contains(e.Location))
                     {
                         isChangingPosition = true;
@@ -795,7 +915,7 @@ namespace BagauovOOP_LR4
                 }
             }
 
-            // Существующий код выделения прямоугольником (если ctrlPressed)
+            // Остальной код остаётся без изменений
             if (e.Button == MouseButtons.Left && ctrlPressed)
             {
                 selectionStartPoint = e.Location;
@@ -807,39 +927,70 @@ namespace BagauovOOP_LR4
 
         private void Form1_MouseMove(object sender, MouseEventArgs e)
         {
-            if (isChangingPosition)
+            if (isResizing)
             {
-                int dx = e.X - changePositionStartPoint.X;
-                int dy = e.Y - changePositionStartPoint.Y;
+                int dx = e.X - resizeStartPoint.X;
+                int dy = e.Y - resizeStartPoint.Y;
 
                 for (shapes.First(); !shapes.EOL(); shapes.Next())
                 {
                     var shape = shapes.GetCurrent();
                     if (shape.IsSelected())
                     {
-                        shape.Move(dx, dy); // Смещаем фигуру
+                        if (shape is CLine line)
+                        {
+                            // Обработка линии (только изменение длины)
+                            int newWidth = line.Size.Width;
+                            if (resizeHandle == 0) // Левая точка
+                            {
+                                newWidth = originalSize.Width - dx;
+                                line.Position = new Point(line.Position.X + dx / 2, line.Position.Y);
+                            }
+                            else if (resizeHandle == 1) // Правая точка
+                            {
+                                newWidth = originalSize.Width + dx;
+                                line.Position = new Point(line.Position.X + dx / 2, line.Position.Y);
+                            }
+                            line.Size = new Size(Math.Max(10, newWidth), line.Size.Height);
+                        }
+                        else
+                        {
+                            // Обработка всех остальных фигур
+                            Size newSize = originalSize;
+
+                            switch (resizeHandle)
+                            {
+                                case 0: // Левый верхний
+                                    newSize.Width = Math.Max(10, originalSize.Width - dx);
+                                    newSize.Height = Math.Max(10, originalSize.Height - dy);
+                                    break;
+                                case 1: // Правый верхний
+                                    newSize.Width = Math.Max(10, originalSize.Width + dx);
+                                    newSize.Height = Math.Max(10, originalSize.Height - dy);
+                                    break;
+                                case 2: // Правый нижний
+                                    newSize.Width = Math.Max(10, originalSize.Width + dx);
+                                    newSize.Height = Math.Max(10, originalSize.Height + dy);
+                                    break;
+                                case 3: // Левый нижний
+                                    newSize.Width = Math.Max(10, originalSize.Width - dx);
+                                    newSize.Height = Math.Max(10, originalSize.Height + dy);
+                                    break;
+                            }
+
+                            shape.Resize(newSize);
+                        }
                     }
                 }
 
-                changePositionStartPoint = e.Location; // Обновляем точку старта
                 this.Invalidate();
+                return;
             }
 
-            // Обработка выделения прямоугольником
-            if (RectangleSelection && ctrlPressed)
-            {
-                int x = Math.Min(selectionStartPoint.X, e.X);
-                int y = Math.Min(selectionStartPoint.Y, e.Y);
-                int width = Math.Abs(e.X - selectionStartPoint.X);
-                int height = Math.Abs(e.Y - selectionStartPoint.Y);
-
-                selectionRectangle = new Rectangle(x, y, width, height);
-                this.Invalidate();
-            }
-
+            // Остальной код остаётся без изменений
             if (isChangingPosition)
             {
-                wasChangingPosition = true; // <- ВАЖНО
+                wasChangingPosition = true;
                 int dx = e.X - changePositionStartPoint.X;
                 int dy = e.Y - changePositionStartPoint.Y;
 
@@ -855,6 +1006,17 @@ namespace BagauovOOP_LR4
                 changePositionStartPoint = e.Location;
                 this.Invalidate();
             }
+
+            if (RectangleSelection && ctrlPressed)
+            {
+                int x = Math.Min(selectionStartPoint.X, e.X);
+                int y = Math.Min(selectionStartPoint.Y, e.Y);
+                int width = Math.Abs(e.X - selectionStartPoint.X);
+                int height = Math.Abs(e.Y - selectionStartPoint.Y);
+
+                selectionRectangle = new Rectangle(x, y, width, height);
+                this.Invalidate();
+            }
         }
 
 
@@ -862,17 +1024,22 @@ namespace BagauovOOP_LR4
         {
             if (e.Button == MouseButtons.Left)
             {
+                if (isResizing)
+                {
+                    isResizing = false;
+                    resizeHandle = -1;
+                    return;
+                }
+
                 isChangingPosition = false;
 
-                // сбрасываем флаг перемещения
                 if (wasChangingPosition)
                 {
                     wasChangingPosition = false;
-                    return; // предотвращаем логику создания новой фигуры!
+                    return;
                 }
-                isChangingPosition = false;
 
-                // Существующий код выделения прямоугольником
+                // Остальной код остаётся без изменений
                 if (RectangleSelection && ctrlPressed)
                 {
                     Rectangle selectionArea = selectionRectangle;
