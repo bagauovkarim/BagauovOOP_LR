@@ -27,7 +27,9 @@ namespace BagauovOOP_LR4
         private Point resizeStartPoint;
         private Size originalSize;
         private int resizeHandle = -1;
-
+        private Point originalLeftPoint; // Для хранения начальной левой точки
+        private Point originalRightPoint; // Для хранения начальной правой точки
+        private Point originalPosition;
 
         public Form1()
         {
@@ -412,51 +414,96 @@ namespace BagauovOOP_LR4
 
         public class CLine : CShape
         {
-        public CLine(int x, int y)
+            private Point _startPoint;
+            private Point _endPoint;
+
+            public CLine(int x, int y)
             {
-                Position = new Point(x, y);
+                _startPoint = new Point(x - 50, y); // Начальная точка слева от центра
+                _endPoint = new Point(x + 50, y);   // Конечная точка справа от центра
+                UpdatePositionAndSize();
                 Name = "Линия";
-                Size = new Size(100, 0);
-                FillColor = Color.Black; // Черная заливка по умолчанию
+                FillColor = Color.Black;
+            }
+
+            public Point StartPoint => _startPoint;
+            public Point EndPoint => _endPoint;
+
+            public void SetPoints(Point start, Point end)
+            {
+                _startPoint = start;
+                _endPoint = end;
+                UpdatePositionAndSize();
+            }
+
+            private void UpdatePositionAndSize()
+            {
+                // Центр линии - середина между точками
+                Position = new Point(
+                    (_startPoint.X + _endPoint.X) / 2,
+                    (_startPoint.Y + _endPoint.Y) / 2);
+
+                // Размер - разница между точками
+                Size = new Size(
+                    Math.Abs(_endPoint.X - _startPoint.X),
+                    Math.Abs(_endPoint.Y - _startPoint.Y));
             }
 
             public override void Draw(Graphics g)
             {
-                // Черный контур (как в исходном коде)
-                Pen pen = new Pen(FillColor, 3);
-                Brush brush = new SolidBrush(FillColor);
-
-                
-                g.DrawLine(pen, Position.X - Size.Width / 2, Position.Y, Position.X + Size.Width / 2, Position.Y + Size.Height);
-
-                pen.Dispose();
-                brush.Dispose();
-
-                
+                using (Pen pen = new Pen(FillColor, 3))
+                {
+                    g.DrawLine(pen, _startPoint, _endPoint);
+                }
             }
 
             public override bool Contains(Point point)
             {
-                int x1 = Position.X - Size.Width / 2; // Левая точка линии
-                int x2 = Position.X + Size.Width / 2; // Правая точка линии
-                int y = Position.Y; // Высота линии
+                // Проверка попадания точки на линию с учетом толщины
+                return DistanceToLine(point, _startPoint, _endPoint) <= 3;
+            }
 
-                // Проверяем, находится ли точка на той же высоте и внутри диапазона X
-                if ((point.Y >= y - 2 && point.Y <= y + 2) && (point.X >= x1 && point.X <= x2)) {
-                    
-                    return true;
+            private double DistanceToLine(Point point, Point lineStart, Point lineEnd)
+            {
+                // Вычисление расстояния от точки до линии
+                double A = point.X - lineStart.X;
+                double B = point.Y - lineStart.Y;
+                double C = lineEnd.X - lineStart.X;
+                double D = lineEnd.Y - lineStart.Y;
+
+                double dot = A * C + B * D;
+                double len_sq = C * C + D * D;
+                double param = (len_sq != 0) ? dot / len_sq : -1;
+
+                double xx, yy;
+
+                if (param < 0)
+                {
+                    xx = lineStart.X;
+                    yy = lineStart.Y;
+                }
+                else if (param > 1)
+                {
+                    xx = lineEnd.X;
+                    yy = lineEnd.Y;
                 }
                 else
-                    return false;
+                {
+                    xx = lineStart.X + param * C;
+                    yy = lineStart.Y + param * D;
+                }
+
+                double dx = point.X - xx;
+                double dy = point.Y - yy;
+                return Math.Sqrt(dx * dx + dy * dy);
             }
 
             public override Rectangle GetBoundingBox()
             {
-
-                int left = Position.X - Size.Width / 2;
-                int top = Position.Y - 2; // Высота линии будет 2 пикселя (толщина линии)
-                int right = Position.X + Size.Width / 2;
-                int bottom = Position.Y + 2;
+                int left = Math.Min(_startPoint.X, _endPoint.X) - 5;
+                int top = Math.Min(_startPoint.Y, _endPoint.Y) - 5;
+                int right = Math.Max(_startPoint.X, _endPoint.X) + 5;
+                int bottom = Math.Max(_startPoint.Y, _endPoint.Y) + 5;
 
                 return new Rectangle(left, top, right - left, bottom - top);
             }
@@ -465,51 +512,66 @@ namespace BagauovOOP_LR4
             {
                 if (!isSelected) return -1;
 
-                var bounds = GetBoundingBox();
                 int handleSize = 8;
+                Rectangle startHandle = new Rectangle(
+                    _startPoint.X - handleSize / 2,
+                    _startPoint.Y - handleSize / 2,
+                    handleSize,
+                    handleSize);
 
-                // Только левая и правая точки
-                Rectangle[] handles = new Rectangle[2]
-                {
-            new Rectangle(bounds.Left - handleSize/2, bounds.Top + bounds.Height/2 - handleSize/2, handleSize, handleSize),
-            new Rectangle(bounds.Right - handleSize/2, bounds.Top + bounds.Height/2 - handleSize/2, handleSize, handleSize)
-                };
+                Rectangle endHandle = new Rectangle(
+                    _endPoint.X - handleSize / 2,
+                    _endPoint.Y - handleSize / 2,
+                    handleSize,
+                    handleSize);
 
-                for (int i = 0; i < handles.Length; i++)
-                {
-                    if (handles[i].Contains(point))
-                        return i;
-                }
+                if (startHandle.Contains(point)) return 0; // Начальная точка
+                if (endHandle.Contains(point)) return 1;   // Конечная точка
 
                 return -1;
             }
 
             public override void DrawSelection(Graphics g)
             {
-                if (isSelected)
-                {
-                    using (var pen = new Pen(Color.DarkBlue, 2) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash })
-                    {
-                        var bounds = GetBoundingBox();
-                        bounds.Inflate(5, 5);
-                        g.DrawRectangle(pen, bounds);
+                if (!isSelected) return;
 
-                        // Рисуем только левый и правый маркеры
-                        int handleSize = 8;
-                        Brush brush = Brushes.White;
+                // Рисуем маркеры на концах линии
+                int handleSize = 8;
+                Brush brush = Brushes.White;
 
-                        // Левый маркер
-                        g.FillRectangle(brush, bounds.Left - handleSize / 2, bounds.Top + bounds.Height / 2 - handleSize / 2, handleSize, handleSize);
-                        g.DrawRectangle(Pens.Black, bounds.Left - handleSize / 2, bounds.Top + bounds.Height / 2 - handleSize / 2, handleSize, handleSize);
+                // Маркер начальной точки
+                g.FillRectangle(brush,
+                    _startPoint.X - handleSize / 2,
+                    _startPoint.Y - handleSize / 2,
+                    handleSize,
+                    handleSize);
+                g.DrawRectangle(Pens.Black,
+                    _startPoint.X - handleSize / 2,
+                    _startPoint.Y - handleSize / 2,
+                    handleSize,
+                    handleSize);
 
-                        // Правый маркер
-                        g.FillRectangle(brush, bounds.Right - handleSize / 2, bounds.Top + bounds.Height / 2 - handleSize / 2, handleSize, handleSize);
-                        g.DrawRectangle(Pens.Black, bounds.Right - handleSize / 2, bounds.Top + bounds.Height / 2 - handleSize / 2, handleSize, handleSize);
-                    }
-                }
+                // Маркер конечной точки
+                g.FillRectangle(brush,
+                    _endPoint.X - handleSize / 2,
+                    _endPoint.Y - handleSize / 2,
+                    handleSize,
+                    handleSize);
+                g.DrawRectangle(Pens.Black,
+                    _endPoint.X - handleSize / 2,
+                    _endPoint.Y - handleSize / 2,
+                    handleSize,
+                    handleSize);
             }
 
-
+            public override void Move(int dx, int dy)
+            {
+                _startPoint.X += dx;
+                _startPoint.Y += dy;
+                _endPoint.X += dx;
+                _endPoint.Y += dy;
+                UpdatePositionAndSize();
+            }
         }
 
         public class CCircle : CShape
@@ -884,7 +946,6 @@ namespace BagauovOOP_LR4
         {
             if (e.Button == MouseButtons.Left && !ctrlPressed && !isColorMode)
             {
-                // Проверяем, нажал ли пользователь на угол рамки выделенной фигуры
                 for (shapes.First(); !shapes.EOL(); shapes.Next())
                 {
                     var shape = shapes.GetCurrent();
@@ -896,7 +957,18 @@ namespace BagauovOOP_LR4
                             isResizing = true;
                             resizeHandle = handle;
                             resizeStartPoint = e.Location;
-                            originalSize = shape.Size;
+
+                            // Сохраняем исходные параметры
+                            if (shape is CLine line)
+                            {
+                                originalLeftPoint = line.StartPoint;
+                                originalRightPoint = line.EndPoint;
+                            }
+                            else
+                            {
+                                originalSize = shape.Size;
+                                originalPosition = shape.Position;
+                            }
                             return;
                         }
                     }
@@ -939,42 +1011,74 @@ namespace BagauovOOP_LR4
                     {
                         if (shape is CLine line)
                         {
-                            // Обработка линии (только изменение длины)
-                            int newWidth = line.Size.Width;
-                            if (resizeHandle == 0) // Левая точка
+                            // Старая рабочая версия для линии
+                            Point newStart = line.StartPoint;
+                            Point newEnd = line.EndPoint;
+
+                            if (resizeHandle == 0) newStart = e.Location;
+                            else if (resizeHandle == 1) newEnd = e.Location;
+
+                            double length = Math.Sqrt(Math.Pow(newEnd.X - newStart.X, 2) +
+                                                    Math.Pow(newEnd.Y - newStart.Y, 2));
+                            if (length < 10)
                             {
-                                newWidth = originalSize.Width - dx;
-                                line.Position = new Point(line.Position.X + dx / 2, line.Position.Y);
+                                if (resizeHandle == 0)
+                                {
+                                    double angle = Math.Atan2(line.EndPoint.Y - newStart.Y,
+                                                            line.EndPoint.X - newStart.X);
+                                    newStart = new Point(
+                                        (int)(line.EndPoint.X - 10 * Math.Cos(angle)),
+                                        (int)(line.EndPoint.Y - 10 * Math.Sin(angle)));
+                                }
+                                else
+                                {
+                                    double angle = Math.Atan2(newEnd.Y - line.StartPoint.Y,
+                                                            newEnd.X - line.StartPoint.X);
+                                    newEnd = new Point(
+                                        (int)(line.StartPoint.X + 10 * Math.Cos(angle)),
+                                        (int)(line.StartPoint.Y + 10 * Math.Sin(angle)));
+                                }
                             }
-                            else if (resizeHandle == 1) // Правая точка
-                            {
-                                newWidth = originalSize.Width + dx;
-                                line.Position = new Point(line.Position.X + dx / 2, line.Position.Y);
-                            }
-                            line.Size = new Size(Math.Max(10, newWidth), line.Size.Height);
+
+                            line.SetPoints(newStart, newEnd);
                         }
                         else
                         {
-                            // Обработка всех остальных фигур
+                            // Исправленная логика только для правых рукояток обычных фигур
                             Size newSize = originalSize;
 
                             switch (resizeHandle)
                             {
-                                case 0: // Левый верхний
+                                case 0: // Левый верхний (без изменений)
                                     newSize.Width = Math.Max(10, originalSize.Width - dx);
                                     newSize.Height = Math.Max(10, originalSize.Height - dy);
+                                    shape.Position = new Point(
+                                        originalPosition.X + dx / 2,
+                                        originalPosition.Y + dy / 2);
                                     break;
-                                case 1: // Правый верхний
+
+                                case 1: // Правый верхний (ИСПРАВЛЕНО)
                                     newSize.Width = Math.Max(10, originalSize.Width + dx);
                                     newSize.Height = Math.Max(10, originalSize.Height - dy);
+                                    shape.Position = new Point(
+                                        originalPosition.X,
+                                        originalPosition.Y + dy / 2);
                                     break;
-                                case 2: // Правый нижний
+
+                                case 2: // Правый нижний (ИСПРАВЛЕНО)
                                     newSize.Width = Math.Max(10, originalSize.Width + dx);
                                     newSize.Height = Math.Max(10, originalSize.Height + dy);
+                                    shape.Position = new Point(
+                                        originalPosition.X,
+                                        originalPosition.Y);
                                     break;
-                                case 3: // Левый нижний
+
+                                case 3: // Левый нижний (без изменений)
                                     newSize.Width = Math.Max(10, originalSize.Width - dx);
                                     newSize.Height = Math.Max(10, originalSize.Height + dy);
+                                    shape.Position = new Point(
+                                        originalPosition.X + dx / 2,
+                                        originalPosition.Y);
                                     break;
                             }
 
@@ -987,7 +1091,7 @@ namespace BagauovOOP_LR4
                 return;
             }
 
-            // Остальной код остаётся без изменений
+            // Обработка перемещения фигуры
             if (isChangingPosition)
             {
                 wasChangingPosition = true;
@@ -1007,6 +1111,7 @@ namespace BagauovOOP_LR4
                 this.Invalidate();
             }
 
+            // Обработка прямоугольного выделения
             if (RectangleSelection && ctrlPressed)
             {
                 int x = Math.Min(selectionStartPoint.X, e.X);
