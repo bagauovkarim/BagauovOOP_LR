@@ -4,9 +4,13 @@ using System.Drawing;
 using System.Windows.Forms;
 using static BagauovOOP_LR4.Form1;
 
+
+
 namespace BagauovOOP_LR4
 {
-    public partial class Form1 : Form
+
+    
+    public partial class Form1 : DoubleBufferedForm
     {
         private ShapeContainer shapes = new ShapeContainer();
         
@@ -30,6 +34,7 @@ namespace BagauovOOP_LR4
         private Point originalLeftPoint; // Для хранения начальной левой точки
         private Point originalRightPoint; // Для хранения начальной правой точки
         private Point originalPosition;
+        private CShape resizeTargetShape = null;
 
         public Form1()
         {
@@ -72,9 +77,14 @@ namespace BagauovOOP_LR4
 
         void Select();
         void Deselect();
-        void Resize(Size newSize);
-        void Move(int dx, int dy);
+        void Resize(Size newSize, Size canvasSize);
+        void Move(int dx, int dy, Size canvasSize);
         int GetResizeHandle(Point point);
+        void SaveOriginalSizeAndPosition();
+        Size GetOriginalSize();
+        Point GetOriginalPosition();
+        bool IsWithinBounds(Rectangle bounds, Size canvasSize);
+        void UpdatePosition(Size newCanvasSize);
     }
 
 
@@ -87,10 +97,23 @@ namespace BagauovOOP_LR4
        public string Name { get; set; } = "Фигура";
             
        public bool isSelected = false;
-            
-            
-       // Метод для выделения фигуры
-       public virtual void Select()
+
+
+       protected Size _originalSize;
+       protected Point _originalPosition;
+
+            public virtual void SaveOriginalSizeAndPosition()
+            {
+                _originalSize = Size;
+                _originalPosition = Position;
+            }
+
+            public Size GetOriginalSize() => _originalSize;
+            public Point GetOriginalPosition() => _originalPosition;
+
+
+            // Метод для выделения фигуры
+            public virtual void Select()
        {
             isSelected = true;  // Устанавливаем флаг выделения
        }
@@ -116,20 +139,47 @@ namespace BagauovOOP_LR4
        public abstract Rectangle GetBoundingBox();
 
             // Виртуальные методы (могут быть переопределены в наследниках)
-       public virtual void Move(int dx, int dy)
-       {
-           Position = new Point(Position.X + dx, Position.Y + dy);
-       }
+            public virtual void Move(int dx, int dy, Size canvasSize)
+            {
+                // Получаем новые границы фигуры
+                Rectangle newBoundingBox = GetBoundingBox();
+                newBoundingBox.Offset(dx, dy); // Сдвигаем пределы
 
-       public virtual void Resize(Size newSize)
-       {
-           Size = newSize;
-       }
+                // Проверяем, можно ли переместить фигуру
+                if (IsWithinBounds(newBoundingBox, canvasSize))
+                {
+                    Position = new Point(Position.X + dx, Position.Y + dy);
+                }
+            }
 
-            
+            // Метод проверки на выход за границы
+            public bool IsWithinBounds(Rectangle bounds, Size canvasSize)
+            {
+                return
+                    bounds.Left >= 0 &&
+                    bounds.Right <= canvasSize.Width &&
+                    bounds.Top >= 0 &&
+                    bounds.Bottom <= canvasSize.Height;
+            }
+            public virtual void Resize(Size newSize, Size canvasSize)
+            {
+                // Получаем существующую границу
+                Rectangle newBoundingBox = GetBoundingBox();
 
-       // Общие методы для всех фигур
-       public void SetColor(Color newColor)
+                // Изменяем размер
+                newBoundingBox.Size = newSize;
+
+                // Проверяем, чтобы не выйти за границы
+                if (IsWithinBounds(newBoundingBox, canvasSize))
+                {
+                    Size = newSize;
+                }
+            }
+
+
+
+            // Общие методы для всех фигур
+            public void SetColor(Color newColor)
        {
            FillColor = newColor;
        }
@@ -198,7 +248,29 @@ namespace BagauovOOP_LR4
 
                 return -1;
             }
+            public virtual void UpdatePosition(Size newCanvasSize)
+            {
+                // Проверка, что фигура выходит за пределы новой области
+                Rectangle boundingBox = GetBoundingBox();
 
+                // Определяем, насколько необходимо сдвинуть фигуру
+                if (boundingBox.Right > newCanvasSize.Width)
+                {
+                    Position = new Point(Position.X - (boundingBox.Right - newCanvasSize.Width), Position.Y);
+                }
+                if (boundingBox.Left < 0)
+                {
+                    Position = new Point(Position.X - boundingBox.Left, Position.Y);
+                }
+                if (boundingBox.Bottom > newCanvasSize.Height)
+                {
+                    Position = new Point(Position.X, Position.Y - (boundingBox.Bottom - newCanvasSize.Height));
+                }
+                if (boundingBox.Top < 0)
+                {
+                    Position = new Point(Position.X, Position.Y - boundingBox.Top);
+                }
+            }
 
 
         }
@@ -344,16 +416,22 @@ namespace BagauovOOP_LR4
                 return new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
 
             }
-            public override void Move(int dx, int dy)
+            public override void Move(int dx, int dy, Size canvasSize)
             {
-                base.Move(dx, dy);         // смещаем Position
+                base.Move(dx, dy, canvasSize);         // смещаем Position
                 CalculatePoints();         // пересчитываем точки треугольника
             }
 
-            public override void Resize(Size newSize)
+            public override void Resize(Size newSize, Size canvasSize)
             {
-                base.Resize(newSize);
+                base.Resize(newSize, canvasSize);
                 CalculatePoints(); // Пересчитываем точки треугольника при изменении размера
+            }
+
+            public override void UpdatePosition(Size newCanvasSize)
+            {
+                base.UpdatePosition(newCanvasSize); // Вызываем родительский метод для обновления позиции
+                CalculatePoints(); // Пересчитываем вершины после изменения позиции
             }
 
         }
@@ -429,11 +507,31 @@ namespace BagauovOOP_LR4
             public Point StartPoint => _startPoint;
             public Point EndPoint => _endPoint;
 
+            private Point _originalStart;
+            private Point _originalEnd;
+
+            public void SaveOriginalPoints()
+            {
+                _originalStart = _startPoint;
+                _originalEnd = _endPoint;
+            }
+
+            public Point GetOriginalStart() => _originalStart;
+            public Point GetOriginalEnd() => _originalEnd;
+
+
+
             public void SetPoints(Point start, Point end)
             {
-                _startPoint = start;
-                _endPoint = end;
-                UpdatePositionAndSize();
+                int buffer = 10; // Запас в 10 пикселей
+
+                if (IsWithinBounds(start, Application.OpenForms[0].ClientSize, buffer) &&
+                    IsWithinBounds(end, Application.OpenForms[0].ClientSize, buffer))
+                {
+                    _startPoint = start;
+                    _endPoint = end;
+                    UpdatePositionAndSize(); // обновите позицию и размер
+                }
             }
 
             private void UpdatePositionAndSize()
@@ -564,14 +662,92 @@ namespace BagauovOOP_LR4
                     handleSize);
             }
 
-            public override void Move(int dx, int dy)
+            public override void Move(int dx, int dy, Size canvasSize)
             {
-                _startPoint.X += dx;
-                _startPoint.Y += dy;
-                _endPoint.X += dx;
-                _endPoint.Y += dy;
+                // Получаем новые координаты начальной и конечной точки
+                Point newStart = new Point(_startPoint.X + dx, _startPoint.Y + dy);
+                Point newEnd = new Point(_endPoint.X + dx, _endPoint.Y + dy);
+
+                int buffer = 10; // Запас в 10 пикселей
+
+                // Проверяем, находятся ли новые точки в пределах области c запасом
+                if (IsWithinBounds(newStart, canvasSize, buffer) && IsWithinBounds(newEnd, canvasSize, buffer))
+                {
+                    // Обновляем только если обе точки в пределах границ
+                    _startPoint = newStart;
+                    _endPoint = newEnd;
+                    UpdatePositionAndSize(); // Обновите размер и позицию, если это необходимо
+                }
+            }
+
+            // Метод проверки, что точка находится в пределах области
+            private bool IsWithinBounds(Point point, Size canvasSize, int buffer)
+            {
+                return point.X >= +buffer && point.X <= canvasSize.Width - buffer &&
+                       point.Y >= +buffer && point.Y <= canvasSize.Height - buffer;
+            }
+
+           
+                public override void UpdatePosition(Size newCanvasSize)
+            {
+                // Проверяем, выходит ли начальная точка за границы
+                if (_startPoint.X < 0)
+                {
+                    int offset = -_startPoint.X;
+                    _startPoint.X += offset;
+                    _endPoint.X += offset;
+                }
+                else if (_startPoint.X > newCanvasSize.Width)
+                {
+                    int offset = _startPoint.X - newCanvasSize.Width;
+                    _startPoint.X -= offset;
+                    _endPoint.X -= offset;
+                }
+
+                if (_startPoint.Y < 0)
+                {
+                    int offset = -_startPoint.Y;
+                    _startPoint.Y += offset;
+                    _endPoint.Y += offset;
+                }
+                else if (_startPoint.Y > newCanvasSize.Height)
+                {
+                    int offset = _startPoint.Y - newCanvasSize.Height;
+                    _startPoint.Y -= offset;
+                    _endPoint.Y -= offset;
+                }
+
+                // Проверяем, выходит ли конечная точка за границы
+                if (_endPoint.X < 0)
+                {
+                    int offset = -_endPoint.X;
+                    _startPoint.X += offset;
+                    _endPoint.X += offset;
+                }
+                else if (_endPoint.X > newCanvasSize.Width)
+                {
+                    int offset = _endPoint.X - newCanvasSize.Width;
+                    _startPoint.X -= offset;
+                    _endPoint.X -= offset;
+                }
+
+                if (_endPoint.Y < 0)
+                {
+                    int offset = -_endPoint.Y;
+                    _startPoint.Y += offset;
+                    _endPoint.Y += offset;
+                }
+                else if (_endPoint.Y > newCanvasSize.Height)
+                {
+                    int offset = _endPoint.Y - newCanvasSize.Height;
+                    _startPoint.Y -= offset;
+                    _endPoint.Y -= offset;
+                }
+
+                // Обновляем позицию и размер
                 UpdatePositionAndSize();
             }
+        
         }
 
         public class CCircle : CShape
@@ -725,6 +901,13 @@ namespace BagauovOOP_LR4
                     }
                 }
             }
+            public void UpdateAllPositions(Size newCanvasSize)
+            {
+                foreach (CShape shape in shapes)
+                {
+                    shape.UpdatePosition(newCanvasSize);
+                }
+            }
         }
 
         private void Form1_MouseClick(object sender, MouseEventArgs e)
@@ -853,13 +1036,12 @@ namespace BagauovOOP_LR4
                         }
                         this.Invalidate();
                     }
-                    else
+                    else if (selectedShapeType == "Курсор") // Режим курсора
                     {
-                        // Режим курсора: выделение/снятие выделения рамкой
                         if (!shape.IsSelected())
                         {
                             shapes.DeselectAll();  // Снимаем выделение с других фигур
-                            shape.Select();  // Выделяем текущую фигуру
+                            shape.Select();  // Выделяем текущую фигуру (только в режиме курсора)
                         }
                         else
                         {
@@ -920,7 +1102,7 @@ namespace BagauovOOP_LR4
         {
             this.Cursor = Cursors.Default;
             isColorMode = false;
-            selectedShapeType = "";
+            selectedShapeType = "Курсор";
             currentColorBeforeCursor = selectedColor;
             // Не сбрасываем цвет, так как это не должно повлиять на дальнейшие действия
         }
@@ -944,58 +1126,62 @@ namespace BagauovOOP_LR4
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left && !ctrlPressed && !isColorMode)
+            // Если левая кнопка мыши, не режим цвета и не зажат Ctrl
+        if (e.Button == MouseButtons.Left && !ctrlPressed && !isColorMode)
+    {
+        // Сохраняем исходные параметры всех выбранных фигур
+        for (shapes.First(); !shapes.EOL(); shapes.Next())
+        {
+            var shape = shapes.GetCurrent();
+            if (shape.IsSelected())
             {
-                for (shapes.First(); !shapes.EOL(); shapes.Next())
-                {
-                    var shape = shapes.GetCurrent();
-                    if (shape.IsSelected())
-                    {
-                        int handle = shape.GetResizeHandle(e.Location);
-                        if (handle != -1)
-                        {
-                            isResizing = true;
-                            resizeHandle = handle;
-                            resizeStartPoint = e.Location;
-
-                            // Сохраняем исходные параметры
-                            if (shape is CLine line)
-                            {
-                                originalLeftPoint = line.StartPoint;
-                                originalRightPoint = line.EndPoint;
-                            }
-                            else
-                            {
-                                originalSize = shape.Size;
-                                originalPosition = shape.Position;
-                            }
-                            return;
-                        }
-                    }
-                }
-
-                // Проверяем, нажал ли пользователь на выделенную фигуру (для перемещения)
-                for (shapes.First(); !shapes.EOL(); shapes.Next())
-                {
-                    var shape = shapes.GetCurrent();
-                    if (shape.IsSelected() && shape.Contains(e.Location))
-                    {
-                        isChangingPosition = true;
-                        changePositionStartPoint = e.Location;
-                        break;
-                    }
-                }
-            }
-
-            // Остальной код остаётся без изменений
-            if (e.Button == MouseButtons.Left && ctrlPressed)
-            {
-                selectionStartPoint = e.Location;
-                RectangleSelection = true;
-                selectionRectangle = new Rectangle(selectionStartPoint.X, selectionStartPoint.Y, 0, 0);
-                this.Invalidate();
+                if (shape is CLine line)
+                    line.SaveOriginalPoints();
+                else
+                    shape.SaveOriginalSizeAndPosition();
             }
         }
+
+        // Проверяем, тянем ли мы за ручку изменения размера
+        for (shapes.First(); !shapes.EOL(); shapes.Next())
+        {
+            var shape = shapes.GetCurrent();
+            if (shape.IsSelected())
+            {
+                int handle = shape.GetResizeHandle(e.Location);
+                if (handle != -1)
+                {
+                    isResizing = true;
+                    resizeHandle = handle;
+                    resizeStartPoint = e.Location;
+                    return;
+                }
+            }
+        }
+
+        // Если не тянем за ручку — проверим, кликнули ли по выбранной фигуре для перемещения
+        for (shapes.First(); !shapes.EOL(); shapes.Next())
+        {
+            var shape = shapes.GetCurrent();
+            if (shape.IsSelected() && shape.Contains(e.Location))
+            {
+                isChangingPosition = true;
+                changePositionStartPoint = e.Location;
+                return;
+            }
+        }
+    }
+
+    // Прямоугольное выделение (если зажат Ctrl и активен курсор или режим цвета)
+    if (e.Button == MouseButtons.Left && ctrlPressed &&
+        (selectedShapeType == "Курсор" || selectedShapeType == "Цвет"))
+    {
+        selectionStartPoint = e.Location;
+        RectangleSelection = true;
+        selectionRectangle = new Rectangle(selectionStartPoint.X, selectionStartPoint.Y, 0, 0);
+        this.Invalidate();
+    }
+}
 
         private void Form1_MouseMove(object sender, MouseEventArgs e)
         {
@@ -1003,92 +1189,87 @@ namespace BagauovOOP_LR4
             {
                 int dx = e.X - resizeStartPoint.X;
                 int dy = e.Y - resizeStartPoint.Y;
+                Size canvasSize = this.ClientSize;
 
                 for (shapes.First(); !shapes.EOL(); shapes.Next())
                 {
                     var shape = shapes.GetCurrent();
-                    if (shape.IsSelected())
+                    if (!shape.IsSelected()) continue;
+
+                    if (shape is CLine line)
                     {
-                        if (shape is CLine line)
+                        Point originalStart = line.GetOriginalStart();
+                        Point originalEnd = line.GetOriginalEnd();
+
+                        Point newStart = originalStart;
+                        Point newEnd = originalEnd;
+
+                        if (resizeHandle == 0)
+                            newStart = new Point(originalStart.X + dx, originalStart.Y + dy);
+                        else if (resizeHandle == 1)
+                            newEnd = new Point(originalEnd.X + dx, originalEnd.Y + dy);
+
+                        double length = Math.Sqrt(Math.Pow(newEnd.X - newStart.X, 2) +
+                                                  Math.Pow(newEnd.Y - newStart.Y, 2));
+                        if (length < 10)
                         {
-                            // Старая рабочая версия для линии
-                            Point newStart = line.StartPoint;
-                            Point newEnd = line.EndPoint;
-
-                            if (resizeHandle == 0) newStart = e.Location;
-                            else if (resizeHandle == 1) newEnd = e.Location;
-
-                            double length = Math.Sqrt(Math.Pow(newEnd.X - newStart.X, 2) +
-                                                    Math.Pow(newEnd.Y - newStart.Y, 2));
-                            if (length < 10)
+                            if (resizeHandle == 0)
                             {
-                                if (resizeHandle == 0)
-                                {
-                                    double angle = Math.Atan2(line.EndPoint.Y - newStart.Y,
-                                                            line.EndPoint.X - newStart.X);
-                                    newStart = new Point(
-                                        (int)(line.EndPoint.X - 10 * Math.Cos(angle)),
-                                        (int)(line.EndPoint.Y - 10 * Math.Sin(angle)));
-                                }
-                                else
-                                {
-                                    double angle = Math.Atan2(newEnd.Y - line.StartPoint.Y,
-                                                            newEnd.X - line.StartPoint.X);
-                                    newEnd = new Point(
-                                        (int)(line.StartPoint.X + 10 * Math.Cos(angle)),
-                                        (int)(line.StartPoint.Y + 10 * Math.Sin(angle)));
-                                }
+                                double angle = Math.Atan2(originalEnd.Y - newStart.Y,
+                                                          originalEnd.X - newStart.X);
+                                newStart = new Point(
+                                    (int)(originalEnd.X - 10 * Math.Cos(angle)),
+                                    (int)(originalEnd.Y - 10 * Math.Sin(angle)));
                             }
-
-                            line.SetPoints(newStart, newEnd);
+                            else
+                            {
+                                double angle = Math.Atan2(newEnd.Y - originalStart.Y,
+                                                          newEnd.X - originalStart.X);
+                                newEnd = new Point(
+                                    (int)(originalStart.X + 10 * Math.Cos(angle)),
+                                    (int)(originalStart.Y + 10 * Math.Sin(angle)));
+                            }
                         }
-                        else
+
+                        line.SetPoints(newStart, newEnd);
+                    }
+                    else
+                    {
+                        Size originalSize = shape.GetOriginalSize();
+                        Point originalPosition = shape.GetOriginalPosition();
+
+                        Size newSize = originalSize;
+                        Point newPosition = originalPosition;
+
+                        switch (resizeHandle)
                         {
-                            // Исправленная логика только для правых рукояток обычных фигур
-                            Size newSize = originalSize;
-
-                            switch (resizeHandle)
-                            {
-                                case 0: // Левый верхний (без изменений)
-                                    newSize.Width = Math.Max(10, originalSize.Width - dx);
-                                    newSize.Height = Math.Max(10, originalSize.Height - dy);
-                                    shape.Position = new Point(
-                                        originalPosition.X + dx / 2,
-                                        originalPosition.Y + dy / 2);
-                                    break;
-
-                                case 1: // Правый верхний (ИСПРАВЛЕНО)
-                                    newSize.Width = Math.Max(10, originalSize.Width + dx);
-                                    newSize.Height = Math.Max(10, originalSize.Height - dy);
-                                    shape.Position = new Point(
-                                        originalPosition.X,
-                                        originalPosition.Y + dy / 2);
-                                    break;
-
-                                case 2: // Правый нижний (ИСПРАВЛЕНО)
-                                    newSize.Width = Math.Max(10, originalSize.Width + dx);
-                                    newSize.Height = Math.Max(10, originalSize.Height + dy);
-                                    shape.Position = new Point(
-                                        originalPosition.X,
-                                        originalPosition.Y);
-                                    break;
-
-                                case 3: // Левый нижний (без изменений)
-                                    newSize.Width = Math.Max(10, originalSize.Width - dx);
-                                    newSize.Height = Math.Max(10, originalSize.Height + dy);
-                                    shape.Position = new Point(
-                                        originalPosition.X + dx / 2,
-                                        originalPosition.Y);
-                                    break;
-                            }
-
-                            shape.Resize(newSize);
+                            case 0: // Левый верхний
+                                newSize.Width = Math.Max(10, originalSize.Width - dx);
+                                newSize.Height = Math.Max(10, originalSize.Height - dy);
+                                newPosition = new Point(originalPosition.X + dx / 2, originalPosition.Y + dy / 2);
+                                break;
+                            case 1: // Правый верхний
+                                newSize.Width = Math.Max(10, originalSize.Width + dx);
+                                newSize.Height = Math.Max(10, originalSize.Height - dy);
+                                newPosition = new Point(originalPosition.X, originalPosition.Y + dy / 2);
+                                break;
+                            case 2: // Правый нижний
+                                newSize.Width = Math.Max(10, originalSize.Width + dx);
+                                newSize.Height = Math.Max(10, originalSize.Height + dy);
+                                break;
+                            case 3: // Левый нижний
+                                newSize.Width = Math.Max(10, originalSize.Width - dx);
+                                newSize.Height = Math.Max(10, originalSize.Height + dy);
+                                newPosition = new Point(originalPosition.X + dx / 2, originalPosition.Y);
+                                break;
                         }
+
+                        shape.Resize(newSize, canvasSize);
+                        shape.Position = newPosition;
                     }
                 }
 
                 this.Invalidate();
-                return;
             }
 
             // Обработка перемещения фигуры
@@ -1098,12 +1279,14 @@ namespace BagauovOOP_LR4
                 int dx = e.X - changePositionStartPoint.X;
                 int dy = e.Y - changePositionStartPoint.Y;
 
+                Size canvasSize = this.ClientSize; // Получаем размер области рисования
+
                 for (shapes.First(); !shapes.EOL(); shapes.Next())
                 {
                     var shape = shapes.GetCurrent();
                     if (shape.IsSelected())
                     {
-                        shape.Move(dx, dy);
+                        shape.Move(dx, dy, canvasSize); // Передаем размер холста
                     }
                 }
 
@@ -1204,5 +1387,30 @@ namespace BagauovOOP_LR4
             }
         }
 
+        
+
+        private void Form1_SizeChanged(object sender, EventArgs e)
+        {
+            shapes.UpdateAllPositions(this.ClientSize);
+            this.Invalidate(); // Перерисовываем форму
+        }
+
+
+
+    }
+    public class DoubleBufferedForm : Form
+    {
+        public DoubleBufferedForm()
+        {
+            // Включаем двойную буферизацию
+            this.DoubleBuffered = true;
+           
+
+        }
+
+        protected override void OnPaintBackground(PaintEventArgs e)
+        {
+            e.Graphics.Clear(this.BackColor);
+        }
     }
 }

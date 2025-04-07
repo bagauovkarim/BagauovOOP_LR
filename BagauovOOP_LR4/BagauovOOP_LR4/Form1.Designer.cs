@@ -182,6 +182,7 @@
             this.Controls.Add(this.toolboxPanel);
             this.Name = "Form1";
             this.Text = "Графический редактор";
+            this.SizeChanged += new System.EventHandler(this.Form1_SizeChanged);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.Form1_Paint);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyUp);
