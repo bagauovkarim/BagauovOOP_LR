@@ -113,6 +113,7 @@
             this.ellipseTool.TabIndex = 5;
             this.ellipseTool.TabStop = false;
             this.ellipseTool.Tag = "Эллипс";
+            this.ellipseTool.Click += new System.EventHandler(this.ellipseTool_Click);
             // 
             // rectangleTool
             // 
@@ -128,6 +129,7 @@
             this.rectangleTool.TabIndex = 0;
             this.rectangleTool.TabStop = false;
             this.rectangleTool.Tag = "Прямоугольник";
+            this.rectangleTool.Click += new System.EventHandler(this.rectangleTool_Click);
             // 
             // circleTool
             // 
@@ -143,6 +145,7 @@
             this.circleTool.TabIndex = 1;
             this.circleTool.TabStop = false;
             this.circleTool.Tag = "Круг";
+            this.circleTool.Click += new System.EventHandler(this.circleTool_Click);
             // 
             // triangleTool
             // 
@@ -158,6 +161,7 @@
             this.triangleTool.TabIndex = 2;
             this.triangleTool.TabStop = false;
             this.triangleTool.Tag = "Треугольник";
+            this.triangleTool.Click += new System.EventHandler(this.triangleTool_Click);
             // 
             // lineTool
             // 
@@ -173,6 +177,7 @@
             this.lineTool.TabIndex = 3;
             this.lineTool.TabStop = false;
             this.lineTool.Tag = "Линия";
+            this.lineTool.Click += new System.EventHandler(this.lineTool_Click);
             // 
             // Form1
             // 
