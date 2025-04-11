@@ -22,7 +22,6 @@ namespace BagauovOOP_LR4
         int GetResizeHandle(Point point); // возвращает индекс углового маркера для изменения размера
         void SaveOriginalSizeAndPosition(); // сохраняет начальные размеры и положение
         Size GetOriginalSize(); // возвращает исходные размеры фигуры
-        Point GetOriginalPosition();  // возвращает исходное положение фигуры
         bool IsWithinBounds(Rectangle bounds, Size canvasSize); // // проверка, укладывается ли фигура в заданные границы
         void UpdatePosition(Size newCanvasSize); // обновление позиции фигуры с учетом нового размера формы
     }
@@ -31,16 +30,28 @@ namespace BagauovOOP_LR4
 
     public abstract class CShape : IShape
     {
-        public Point Position { get; set; }
-        public Size Size { get; set; }
-        public Color FillColor { get; set; } = Color.White;
-        public string Name { get; set; } = "Фигура";
+        protected Point Position;
+        protected Size Size;
+        protected Color FillColor;
+        protected string Name = "Фигура";
 
-        public bool isSelected = false;
+        protected bool isSelected = false;
 
 
-        public Size _originalSize;
-        public Point _originalPosition;
+        protected Size _originalSize;
+        protected Point _originalPosition;
+
+        public Color GetFillColor() => FillColor;
+        public virtual void SetFillColor(Color _fillColor)
+        {
+            FillColor = _fillColor;
+        }
+
+        public Point GetPosition() => Position;
+        public virtual void SetPosition(Point _position)
+        {
+            Position = _position;
+        }
 
         public virtual void SaveOriginalSizeAndPosition()
         {
@@ -49,8 +60,7 @@ namespace BagauovOOP_LR4
         }
 
         public Size GetOriginalSize() => _originalSize;
-        public Point GetOriginalPosition() => _originalPosition;
-
+       
 
         // Метод для выделения фигуры
         public virtual void Select()
@@ -96,7 +106,7 @@ namespace BagauovOOP_LR4
         public bool IsWithinBounds(Rectangle bounds, Size canvasSize)
         {
             return
-                bounds.Left >= 0 && // Левая граница прямоугольника не выходит за левый край канваса
+                bounds.Left >= 70 && // Левая граница прямоугольника не выходит за левый край канваса
                 bounds.Right <= canvasSize.Width && // Правая граница прямоугольника не выходит за правый край канваса
                 bounds.Top >= 0 && // Верхняя граница прямоугольника не выходит за верхний край канваса
                 bounds.Bottom <= canvasSize.Height; // Нижняя граница прямоугольника не выходит за нижний край канваса
@@ -164,7 +174,7 @@ namespace BagauovOOP_LR4
             int handleSize = 8; // Размер углового маркера
             Rectangle[] handles = new Rectangle[4]
             {
-        // Левый верхний, правый верхний, правый нижний, левый нижний
+                    // Левый верхний, правый верхний, правый нижний, левый нижний
                     new Rectangle(bounds.Left - handleSize/2, bounds.Top - handleSize/2, handleSize, handleSize),
                     new Rectangle(bounds.Right - handleSize/2, bounds.Top - handleSize/2, handleSize, handleSize),
                     new Rectangle(bounds.Right - handleSize/2, bounds.Bottom - handleSize/2, handleSize, handleSize),
@@ -247,12 +257,30 @@ namespace BagauovOOP_LR4
             }
             return false;
         }
-
+        
         public override Rectangle GetBoundingBox()
         {
-            return new Rectangle(Position.X - Size.Width / 2, Position.Y - Size.Height / 2, Size.Width, Size.Height);
+            return new Rectangle(Position.X - Size.Width / 2, Position.Y - Size.Height / 2, Size.Width + 1, Size.Height + 1);
 
         }
+
+        public override void Resize(Size newSize, Size canvasSize)
+        {
+            // Создаём новый bounding box с учётом позиции по центру
+            var newBoundingBox = new Rectangle(
+                Position.X - newSize.Width / 2 + 1,
+                Position.Y - newSize.Height / 2,
+                newSize.Width + 1,
+                newSize.Height + 1
+            );
+
+            // проверка на выход за пределы холста
+            if (IsWithinBounds(newBoundingBox, canvasSize))
+            {
+                Size = newSize;
+            }
+        }
+
 
 
     }
@@ -621,7 +649,7 @@ namespace BagauovOOP_LR4
         // Метод проверки, что точка находится в пределах области
         private bool IsWithinBounds(Point point, Size canvasSize, int buffer)
         {
-            return point.X >= +buffer && point.X <= canvasSize.Width - buffer &&
+            return point.X >= +buffer + 68 && point.X <= canvasSize.Width - buffer &&
                    point.Y >= +buffer && point.Y <= canvasSize.Height - buffer;
         }
 
@@ -732,7 +760,26 @@ namespace BagauovOOP_LR4
             return new Rectangle(Position.X - Radius, Position.Y - Radius, Radius * 2, Radius * 2);
         }
 
-       
+        public override void Resize(Size newSize, Size canvasSize)
+        {
+            // Диаметр круга = Width (или Height), т.к. круг должен быть круглым
+            int newDiameter = Math.Min(newSize.Width, newSize.Height);
+            int newRadius = newDiameter / 2;
+
+            // Новый bounding box, исходя из центра круга
+            Rectangle newBoundingBox = new Rectangle(
+                Position.X - newRadius,
+                Position.Y - newRadius,
+                newDiameter,
+                newDiameter);
+
+            // Проверка на выход за границы
+            if (IsWithinBounds(newBoundingBox, canvasSize))
+            {
+                Size = new Size(newDiameter, newDiameter); // Обновляем размер
+            }
+        }
+
 
     }
 }

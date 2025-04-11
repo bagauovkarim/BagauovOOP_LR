@@ -32,7 +32,8 @@ namespace BagauovOOP_LR4
         private bool isResizing = false;
         private Point resizeStartPoint;
         private int resizeHandle = -1;
-       
+        
+
 
         public Form1()
         {
@@ -82,36 +83,47 @@ namespace BagauovOOP_LR4
             {
                 Point clickPoint = this.PointToClient(Cursor.Position);
 
-                // Обработка клика по фигуре (цвет/выделение)
-                bool shapeClicked = shapes.HandleClick(e.Location, selectedShapeType, isColorMode, selectedColor, ref isLineColorChanged, ref currentLineColor);
+                bool shapeClicked = shapes.TrySelectOrPaintShapeAt(
+                    clickPoint,
+                    selectedShapeType,
+                    isColorMode,
+                    selectedColor,
+                    ref isLineColorChanged,
+                    ref currentLineColor
+                );
 
-                // Если не попали по фигуре
-                if (!shapeClicked && !RectangleSelection && !isColorMode)
-                {
-                    shapes.DeselectAll();
-                }
-
-                // Если выбран цвет, и мы в режиме изменения цвета, меняем цвет фигуры
                 if (isColorMode)
                 {
-                    bool changedColor = shapes.ChangeShapeColor(clickPoint, selectedColor);
-                    if (changedColor)
+                    if (shapeClicked)
                     {
-                        this.Invalidate();
+                        this.Invalidate(); // Перерисовываем, если покрасили
                     }
                 }
                 else
                 {
-                    // Попытка создать фигуру
-                    if (selectedShapeType != "Курсор")
+                    if (!shapeClicked)
                     {
-                        shapes.TryCreateShape(selectedShapeType, clickPoint, selectedColor, currentLineColor, isLineColorChanged);
-                    }
-                }
+                        shapes.DeselectAll();
 
-                Invalidate();
+                        if (selectedShapeType != "Курсор")
+                        {
+                            shapes.TryCreateShape(
+                                selectedShapeType,
+                                clickPoint,
+                                selectedColor,
+                                currentLineColor,
+                                isLineColorChanged,
+                                this.ClientSize
+                            );
+                        }
+                    }
+
+                    Invalidate(); // Перерисовываем в любом случае
+                }
             }
         }
+
+
 
 
 
@@ -159,7 +171,7 @@ namespace BagauovOOP_LR4
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
-            bool handled = shapes.HandleMouseDown(
+            bool handled = shapes.TryStartResizeOrMove(
                 e,
                 ctrlPressed,
                 isColorMode,
@@ -174,7 +186,6 @@ namespace BagauovOOP_LR4
             if (handled)
                 return;
 
-            // Прямоугольное выделение
             if (e.Button == MouseButtons.Left && ctrlPressed &&
                 (selectedShapeType == "Курсор" || selectedShapeType == "Цвет"))
             {
@@ -186,9 +197,10 @@ namespace BagauovOOP_LR4
         }
 
 
+
         private void Form1_MouseMove(object sender, MouseEventArgs e)
         {
-            shapes.HandleMouseMove(
+            shapes.ProcessMouseDrag(
                 e,
                 ref isResizing,
                 ref resizeHandle,
@@ -200,28 +212,32 @@ namespace BagauovOOP_LR4
                 ctrlPressed,
                 selectionStartPoint,
                 ref selectionRectangle,
-                this.ClientSize);
+                this.ClientSize
+            );
 
             this.Invalidate();
         }
+
 
 
         private void Form1_MouseUp(object sender, MouseEventArgs e)
         {
-            shapes.HandleMouseUp(
-            e,
-            ref isResizing,
-            ref resizeHandle,
-            ref isChangingPosition,
-            ref wasChangingPosition,
-            ref RectangleSelection,
-            ctrlPressed,
-            isColorMode,
-            selectionRectangle,
-            selectedColor);
+            shapes.FinalizeActionOnMouseUp(
+                e,
+                ref isResizing,
+                ref resizeHandle,
+                ref isChangingPosition,
+                ref wasChangingPosition,
+                ref RectangleSelection,
+                ctrlPressed,
+                isColorMode,
+                selectionRectangle,
+                selectedColor
+            );
 
             this.Invalidate();
         }
+
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {

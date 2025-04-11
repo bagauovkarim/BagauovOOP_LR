@@ -15,11 +15,11 @@
       "RelativeMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|solutionrelative:bagauovoop_lr4\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|c:\\users\\karim\\source\\repos\\bagauovoop_lr4\\bagauovoop_lr4\\shapecontainer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\bagauovoop_lr4\\shapecontainer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|solutionrelative:bagauovoop_lr4\\shapecontainer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\bagauovoop_lr4\\shapes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|c:\\users\\karim\\source\\repos\\bagauovoop_lr4\\bagauovoop_lr4\\shapes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|solutionrelative:bagauovoop_lr4\\shapes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -48,7 +48,7 @@
               "RelativeDocumentMoniker": "BagauovOOP_LR4\\Shapes.cs",
               "ToolTip": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\BagauovOOP_LR4\\Shapes.cs",
               "RelativeToolTip": "BagauovOOP_LR4\\Shapes.cs",
-              "ViewState": "AgIAABUAAAAAAAAAAAAAAHsAAAAiAAAAAAAAAA==",
+              "ViewState": "AgIAANwCAAAAAAAAAAAIwO4CAAAyAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-04-08T16:45:48.045Z",
               "EditorCaption": ""
@@ -61,7 +61,7 @@
               "RelativeDocumentMoniker": "BagauovOOP_LR4\\ShapeContainer.cs",
               "ToolTip": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\BagauovOOP_LR4\\ShapeContainer.cs",
               "RelativeToolTip": "BagauovOOP_LR4\\ShapeContainer.cs",
-              "ViewState": "AgIAAK8BAAAAAAAAAAAowNoBAAAvAAAAAAAAAA==",
+              "ViewState": "AgIAAIUBAAAAAAAAAAA4wJgBAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-04-08T16:38:09.704Z",
               "EditorCaption": ""
@@ -74,7 +74,7 @@
               "RelativeDocumentMoniker": "BagauovOOP_LR4\\Form1.cs",
               "ToolTip": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\BagauovOOP_LR4\\Form1.cs",
               "RelativeToolTip": "BagauovOOP_LR4\\Form1.cs",
-              "ViewState": "AgIAAOgAAAAAAAAAAAAuwMEAAAAhAAAAAAAAAA==",
+              "ViewState": "AgIAAIYAAAAAAAAAAAAAwHwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-03-23T13:46:49.514Z",
               "EditorCaption": ""
@@ -87,7 +87,7 @@
               "RelativeDocumentMoniker": "BagauovOOP_LR4\\Form1.Designer.cs",
               "ToolTip": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\BagauovOOP_LR4\\Form1.Designer.cs",
               "RelativeToolTip": "BagauovOOP_LR4\\Form1.Designer.cs",
-              "ViewState": "AgIAABYAAAAAAAAAAAAgwLUAAAAUAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAALUAAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-03-23T13:47:54.821Z",
               "EditorCaption": ""

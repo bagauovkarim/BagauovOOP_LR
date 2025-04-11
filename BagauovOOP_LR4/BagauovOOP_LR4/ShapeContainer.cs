@@ -11,9 +11,9 @@ namespace BagauovOOP_LR4
     {
         private List<CShape> shapes = new List<CShape>();
         private int currentIndex = 0;
+        private CShape resizeTargetShape = null;
 
 
-      
         // Добавление фигуры
         public void Add(CShape shape)
         {
@@ -41,17 +41,6 @@ namespace BagauovOOP_LR4
             }
         }
 
-        // Выделение фигур в прямоугольной области
-        public void SelectInRectangle(Rectangle rect)
-        {
-            for (int i = 0; i < shapes.Count; i++)
-            {
-                if (shapes[i].IntersectsWith(rect))
-                {
-                    shapes[i].Select();
-                }
-            }
-        }
 
         // Получение количества выделенных фигур
         public int GetSelectedCount()
@@ -91,8 +80,9 @@ namespace BagauovOOP_LR4
         // Метод выделяет фигуры, чьи границы пересекаются с прямоугольником
         public void SelectShapesInRectangle(Rectangle rect)
         {
-            foreach (CShape shape in shapes)
+            for (First(); !EOL(); Next())
             {
+                CShape shape = GetCurrent();
                 if (shape.GetBoundingBox().IntersectsWith(rect))
                 {
                     shape.Select();  // Выделяем фигуру
@@ -108,164 +98,42 @@ namespace BagauovOOP_LR4
             }
         }
 
-        public void TryCreateShape(string selectedShapeType, Point location, Color color, Color lineColor, bool isLineColorChanged)
+        public void TryCreateShape(string selectedShapeType, Point location, Color color, Color lineColor, bool isLineColorChanged, Size canvasSize)
         {
             CShape newShape = null;
 
             switch (selectedShapeType)
             {
                 case "Круг":
-                    newShape = new CCircle(location.X, location.Y, 30) { FillColor = color };
+                    newShape = new CCircle(location.X, location.Y, 30);
+                    newShape.SetFillColor(color);
                     break;
                 case "Прямоугольник":
-                    newShape = new CRectangle(location.X, location.Y) { FillColor = color };
+                    newShape = new CRectangle(location.X, location.Y);
+                    newShape.SetFillColor(color);
                     break;
                 case "Треугольник":
-                    newShape = new CTriangle(location.X, location.Y) { FillColor = color };
+                    newShape = new CTriangle(location.X, location.Y);
+                    newShape.SetFillColor(color);
                     break;
                 case "Эллипс":
-                    newShape = new CEllipse(location.X, location.Y) { FillColor = color };
+                    newShape = new CEllipse(location.X, location.Y);
+                    newShape.SetFillColor(color);
                     break;
                 case "Линия":
                     var line = new CLine(location.X, location.Y);
                     if (isLineColorChanged)
-                        line.FillColor = lineColor;
+                        line.SetFillColor(lineColor);
                     newShape = line;
                     break;
             }
 
             if (newShape != null)
+
+                newShape.UpdatePosition(canvasSize);
                 Add(newShape);
         }
 
-
-
-        public bool HandleClick(Point clickPoint, string selectedShapeType, bool isColorMode, Color selectedColor, ref bool isLineColorChanged, ref Color currentLineColor)
-        {
-            for (First(); !EOL(); Next())
-            {
-                var shape = GetCurrent();
-
-                if (shape.Contains(clickPoint))
-                {
-                    if (isColorMode)
-                    {
-                        if (shape is CLine)
-                        {
-                            shape.FillColor = selectedColor;
-                            currentLineColor = selectedColor;
-                            isLineColorChanged = true;
-                        }
-                        else
-                        {
-                            shape.FillColor = shape.FillColor == selectedColor ? Color.White : selectedColor;
-                        }
-                    }
-                    else if (selectedShapeType == "Курсор")
-                    {
-                        if (!shape.IsSelected())
-                        {
-                            DeselectAll();
-                            shape.Select();
-                        }
-                        else
-                        {
-                            shape.Deselect();
-                        }
-                    }
-
-                    return true; // фигура была кликнута
-                }
-            }
-
-            return false; // клик не по фигуре
-        }
-
-        public void SelectInRectangle(Rectangle selectionArea, bool isColorMode, Color selectedColor)
-        {
-            for (First(); !EOL(); Next())
-            {
-                var shape = GetCurrent();
-                if (selectionArea.IntersectsWith(shape.GetBoundingBox()))
-                {
-                    if (isColorMode)
-                        shape.FillColor = selectedColor;
-                    else
-                        shape.Select();
-                }
-                else
-                {
-                    shape.Deselect();
-                }
-            }
-        }
-
-        public bool HandleMouseDown(
-            MouseEventArgs e,
-            bool ctrlPressed,
-            bool isColorMode,
-            string selectedShapeType,
-            out bool isResizing,
-            out int resizeHandle,
-            out Point resizeStartPoint,
-            out bool isChangingPosition,
-            out Point changePositionStartPoint)
-        {
-            isResizing = false;
-            isChangingPosition = false;
-            resizeHandle = -1;
-            resizeStartPoint = Point.Empty;
-            changePositionStartPoint = Point.Empty;
-
-            if (e.Button == MouseButtons.Left && !ctrlPressed && !isColorMode)
-            {
-                // Сохраняем исходные параметры всех выбранных фигур
-                for (First(); !EOL(); Next())
-                {
-                    var shape = GetCurrent();
-                    if (shape.IsSelected())
-                    {
-                        if (shape is CLine line)
-                            line.SaveOriginalPoints();
-                        else
-                            shape.SaveOriginalSizeAndPosition();
-                    }
-                }
-
-                // Проверяем, тянем ли мы за ручку изменения размера
-                for (First(); !EOL(); Next())
-                {
-                    var shape = GetCurrent();
-                    if (shape.IsSelected())
-                    {
-                        int handle = shape.GetResizeHandle(e.Location);
-                        if (handle != -1)
-                        {
-                            isResizing = true;
-                            resizeHandle = handle;
-                            resizeStartPoint = e.Location;
-                            return true;
-                        }
-                    }
-                }
-
-                // Проверяем клик по выбранной фигуре для перемещения
-                for (First(); !EOL(); Next())
-                {
-                    var shape = GetCurrent();
-                    if (shape.IsSelected() && shape.Contains(e.Location))
-                    {
-                        isChangingPosition = true;
-                        changePositionStartPoint = e.Location;
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-
-
-        }
 
         public void DrawAll(Graphics g, bool rectangleSelection, Rectangle selectionRectangle)
         {
@@ -288,136 +156,114 @@ namespace BagauovOOP_LR4
             }
         }
 
-        public void HandleMouseMove(MouseEventArgs e, ref bool isResizing, ref int resizeHandle, Point resizeStartPoint,
-                        ref bool isChangingPosition, ref bool wasChangingPosition, ref Point changePositionStartPoint,
-                        ref bool rectangleSelection, bool ctrlPressed, Point selectionStartPoint,
-                        ref Rectangle selectionRectangle, Size canvasSize)
+
+        public bool TrySelectOrPaintShapeAt(Point clickPoint, string selectedShapeType, bool isColorMode, Color selectedColor, ref bool isLineColorChanged, ref Color currentLineColor)
         {
-            //Если происходит изменение размера, то для каждой выбранной фигуры рассчитываются новые размеры и положение в зависимости от того, за какую ручку изменения размера мы тянем
-            if (isResizing)
+            for (First(); !EOL(); Next())
             {
-                int dx = e.X - resizeStartPoint.X;
-                int dy = e.Y - resizeStartPoint.Y;
+                var shape = GetCurrent();
 
-                for (First(); !EOL(); Next())
+                if (shape.Contains(clickPoint))
                 {
-                    var shape = GetCurrent();
-                    if (!shape.IsSelected()) 
-                        continue;
-
-                    if (shape is CLine line)
+                    if (isColorMode)
                     {
-                        Point originalStart = line.GetOriginalStart();
-                        Point originalEnd = line.GetOriginalEnd();
-
-                        Point newStart = originalStart;
-                        Point newEnd = originalEnd;
-
-                        if (resizeHandle == 0)
-                            newStart = new Point(originalStart.X + dx, originalStart.Y + dy);
-                        else if (resizeHandle == 1)
-                            newEnd = new Point(originalEnd.X + dx, originalEnd.Y + dy);
-
-                        double length = Math.Sqrt(Math.Pow(newEnd.X - newStart.X, 2) + Math.Pow(newEnd.Y - newStart.Y, 2));
-                        if (length < 10)
+                        if (shape is CLine)
                         {
-                            if (resizeHandle == 0)
-                            {
-                                double angle = Math.Atan2(originalEnd.Y - newStart.Y, originalEnd.X - newStart.X);
-                                newStart = new Point(
-                                    (int)(originalEnd.X - 10 * Math.Cos(angle)),
-                                    (int)(originalEnd.Y - 10 * Math.Sin(angle)));
-                            }
-                            else
-                            {
-                                double angle = Math.Atan2(newEnd.Y - originalStart.Y, newEnd.X - originalStart.X);
-                                newEnd = new Point(
-                                    (int)(originalStart.X + 10 * Math.Cos(angle)),
-                                    (int)(originalStart.Y + 10 * Math.Sin(angle)));
-                            }
+                            shape.SetFillColor(selectedColor);
+                            currentLineColor = selectedColor;
+                            isLineColorChanged = true;
                         }
-
-                        line.SetPoints(newStart, newEnd);
+                        else
+                        {
+                            Color currentColor = shape.GetFillColor();
+                            shape.SetFillColor(currentColor == selectedColor ? Color.White : selectedColor);
+                        }
                     }
-                    else
+                    else if (selectedShapeType == "Курсор")
                     {
-                        Size originalSize = shape.GetOriginalSize();
-                        Point originalPosition = shape.GetOriginalPosition();
-
-                        Size newSize = originalSize;
-                        Point newPosition = originalPosition;
-
-                        switch (resizeHandle)
+                        if (!shape.IsSelected())
                         {
-                            case 0:
-                                newSize.Width = Math.Max(10, originalSize.Width - dx);
-                                newSize.Height = Math.Max(10, originalSize.Height - dy);
-                                newPosition = new Point(originalPosition.X + dx / 2, originalPosition.Y + dy / 2);
-                                break;
-                            case 1:
-                                newSize.Width = Math.Max(10, originalSize.Width + dx);
-                                newSize.Height = Math.Max(10, originalSize.Height - dy);
-                                newPosition = new Point(originalPosition.X, originalPosition.Y + dy / 2);
-                                break;
-                            case 2:
-                                newSize.Width = Math.Max(10, originalSize.Width + dx);
-                                newSize.Height = Math.Max(10, originalSize.Height + dy);
-                                break;
-                            case 3:
-                                newSize.Width = Math.Max(10, originalSize.Width - dx);
-                                newSize.Height = Math.Max(10, originalSize.Height + dy);
-                                newPosition = new Point(originalPosition.X + dx / 2, originalPosition.Y);
-                                break;
+                            DeselectAll();
+                            shape.Select();
                         }
-
-                        shape.Resize(newSize, canvasSize);
-                        shape.Position = newPosition;
+                        else
+                        {
+                            shape.Deselect();
+                        }
                     }
+
+                    return true;
                 }
-
-                return;
             }
 
-            if (isChangingPosition)
+            return false;
+        }
+
+        public bool TryStartResizeOrMove(MouseEventArgs e, bool ctrlPressed, bool isColorMode, string selectedShapeType, out bool isResizing, out int resizeHandle, out Point resizeStartPoint, out bool isChangingPosition, out Point changePositionStartPoint)
+        {
+            isResizing = false;
+            isChangingPosition = false;
+            resizeHandle = -1;
+            resizeStartPoint = Point.Empty;
+            changePositionStartPoint = Point.Empty;
+
+            if (e.Button == MouseButtons.Left && !ctrlPressed && !isColorMode)
             {
-                wasChangingPosition = true;
-                int dx = e.X - changePositionStartPoint.X;
-                int dy = e.Y - changePositionStartPoint.Y;
+                SaveOriginalStates();
 
                 for (First(); !EOL(); Next())
                 {
                     var shape = GetCurrent();
                     if (shape.IsSelected())
                     {
-                        shape.Move(dx, dy, canvasSize);
+                        int handle = shape.GetResizeHandle(e.Location);
+                        if (handle != -1)
+                        {
+                            isResizing = true;
+                            resizeHandle = handle;
+                            resizeStartPoint = e.Location;
+                            resizeTargetShape = shape;
+                            return true;
+                        }
                     }
                 }
 
-                changePositionStartPoint = e.Location;
+                for (First(); !EOL(); Next())
+                {
+                    var shape = GetCurrent();
+                    if (shape.IsSelected() && shape.Contains(e.Location))
+                    {
+                        isChangingPosition = true;
+                        changePositionStartPoint = e.Location;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public void ProcessMouseDrag(MouseEventArgs e, ref bool isResizing, ref int resizeHandle, Point resizeStartPoint, ref bool isChangingPosition, ref bool wasChangingPosition, ref Point changePositionStartPoint, ref bool rectangleSelection, bool ctrlPressed, Point selectionStartPoint, ref Rectangle selectionRectangle, Size canvasSize)
+        {
+            if (isResizing)
+            {
+                ResizeSelectedShapes(e.Location, resizeHandle, resizeStartPoint, canvasSize);
+                return;
+            }
+
+            if (isChangingPosition)
+            {
+                MoveSelectedShapes(e.Location, ref changePositionStartPoint, canvasSize, ref wasChangingPosition);
                 return;
             }
 
             if (rectangleSelection && ctrlPressed)
             {
-                int x = Math.Min(selectionStartPoint.X, e.X);
-                int y = Math.Min(selectionStartPoint.Y, e.Y);
-                int width = Math.Abs(e.X - selectionStartPoint.X);
-                int height = Math.Abs(e.Y - selectionStartPoint.Y);
-
-                selectionRectangle = new Rectangle(x, y, width, height);
+                UpdateSelectionRectangle(e.Location, selectionStartPoint, ref selectionRectangle);
             }
         }
 
-        public void HandleMouseUp(MouseEventArgs e,
-                      ref bool isResizing,
-                      ref int resizeHandle,
-                      ref bool isChangingPosition,
-                      ref bool wasChangingPosition,
-                      ref bool rectangleSelection,
-                      bool ctrlPressed,
-                      bool isColorMode,
-                      Rectangle selectionRectangle,
-                      Color selectedColor)
+        public void FinalizeActionOnMouseUp(MouseEventArgs e, ref bool isResizing, ref int resizeHandle, ref bool isChangingPosition, ref bool wasChangingPosition, ref bool rectangleSelection, bool ctrlPressed, bool isColorMode, Rectangle selectionRectangle, Color selectedColor)
         {
             if (e.Button == MouseButtons.Left)
             {
@@ -425,6 +271,7 @@ namespace BagauovOOP_LR4
                 {
                     isResizing = false;
                     resizeHandle = -1;
+                    resizeTargetShape = null;
                     return;
                 }
 
@@ -438,50 +285,159 @@ namespace BagauovOOP_LR4
 
                 if (rectangleSelection && ctrlPressed)
                 {
-                    Rectangle selectionArea = selectionRectangle;
-
-                    for (First(); !EOL(); Next())
-                    {
-                        var shape = GetCurrent();
-
-                        if (selectionArea.IntersectsWith(shape.GetBoundingBox()))
-                        {
-                            if (isColorMode)
-                            {
-                                shape.FillColor = selectedColor;
-                            }
-                            else
-                            {
-                                shape.Select();
-                            }
-                        }
-                        else
-                        {
-                            shape.Deselect();
-                        }
-                    }
-
+                    ApplySelectionRectangle(selectionRectangle, isColorMode, selectedColor);
                     rectangleSelection = false;
                 }
             }
         }
 
-        public bool ChangeShapeColor(Point clickPoint, Color selectedColor)
+        private void ResizeSelectedShapes(Point currentPoint, int resizeHandle, Point resizeStartPoint, Size canvasSize)
+        {
+            int dx = currentPoint.X - resizeStartPoint.X;
+            int dy = currentPoint.Y - resizeStartPoint.Y;
+
+            bool resizingLine = resizeTargetShape is CLine;
+
+            for (First(); !EOL(); Next())
+            {
+                var shape = GetCurrent();
+                if (!shape.IsSelected()) continue;
+                if (resizingLine && !(shape is CLine)) continue;
+                if (!resizingLine && shape is CLine) continue;
+
+                if (shape is CLine line)
+                {
+                    Point originalStart = line.GetOriginalStart();
+                    Point originalEnd = line.GetOriginalEnd();
+
+                    Point newStart = originalStart;
+                    Point newEnd = originalEnd;
+
+                    if (resizeHandle == 0)
+                        newStart = new Point(originalStart.X + dx, originalStart.Y + dy);
+                    else if (resizeHandle == 1)
+                        newEnd = new Point(originalEnd.X + dx, originalEnd.Y + dy);
+
+                    double length = Math.Sqrt(Math.Pow(newEnd.X - newStart.X, 2) + Math.Pow(newEnd.Y - newStart.Y, 2));
+                    if (length < 10)
+                    {
+                        if (resizeHandle == 0)
+                        {
+                            double angle = Math.Atan2(originalEnd.Y - newStart.Y, originalEnd.X - newStart.X);
+                            newStart = new Point(
+                                (int)(originalEnd.X - 10 * Math.Cos(angle)),
+                                (int)(originalEnd.Y - 10 * Math.Sin(angle)));
+                        }
+                        else
+                        {
+                            double angle = Math.Atan2(newEnd.Y - originalStart.Y, newEnd.X - originalStart.X);
+                            newEnd = new Point(
+                                (int)(originalStart.X + 10 * Math.Cos(angle)),
+                                (int)(originalStart.Y + 10 * Math.Sin(angle)));
+                        }
+                    }
+
+                    line.SetPoints(newStart, newEnd);
+                }
+                else
+                {
+                    Size originalSize = shape.GetOriginalSize();
+                    Size newSize = originalSize;
+
+                    switch (resizeHandle)
+                    {
+                        case 0:
+                            newSize.Width = Math.Max(10, originalSize.Width - dx);
+                            newSize.Height = Math.Max(10, originalSize.Height - dy);
+                            break;
+                        case 1:
+                            newSize.Width = Math.Max(10, originalSize.Width + dx);
+                            newSize.Height = Math.Max(10, originalSize.Height - dy);
+                            break;
+                        case 2:
+                            newSize.Width = Math.Max(10, originalSize.Width + dx);
+                            newSize.Height = Math.Max(10, originalSize.Height + dy);
+                            break;
+                        case 3:
+                            newSize.Width = Math.Max(10, originalSize.Width - dx);
+                            newSize.Height = Math.Max(10, originalSize.Height + dy);
+                            break;
+                    }
+
+                    shape.Resize(newSize, canvasSize);
+                }
+            }
+        }
+
+        private void MoveSelectedShapes(Point currentPoint, ref Point startPoint, Size canvasSize, ref bool wasMoving)
+        {
+            wasMoving = true;
+            int dx = currentPoint.X - startPoint.X;
+            int dy = currentPoint.Y - startPoint.Y;
+
+            for (First(); !EOL(); Next())
+            {
+                var shape = GetCurrent();
+                if (shape.IsSelected())
+                {
+                    shape.Move(dx, dy, canvasSize);
+                }
+            }
+
+            startPoint = currentPoint;
+        }
+
+        private void UpdateSelectionRectangle(Point current, Point start, ref Rectangle selectionRect)
+        {
+            int x = Math.Min(start.X, current.X);
+            int y = Math.Min(start.Y, current.Y);
+            int width = Math.Abs(current.X - start.X);
+            int height = Math.Abs(current.Y - start.Y);
+
+            selectionRect = new Rectangle(x, y, width, height);
+        }
+
+        private void ApplySelectionRectangle(Rectangle selectionArea, bool isColorMode, Color selectedColor)
         {
             for (First(); !EOL(); Next())
             {
                 var shape = GetCurrent();
 
-                if (shape.Contains(clickPoint))
+                if (selectionArea.IntersectsWith(shape.GetBoundingBox()))
                 {
-                    // Изменяем цвет фигуры на выбранный
-                    shape.FillColor = selectedColor;
-                    return true;  // Цвет был изменен
+                    if (isColorMode)
+                    {
+                        shape.SetFillColor(selectedColor);
+                    }
+                    else
+                    {
+                        shape.Select();
+                    }
+                }
+                else
+                {
+                    shape.Deselect();
                 }
             }
-
-            return false;  // Клик не попал по фигуре
         }
+
+        private void SaveOriginalStates()
+        {
+            for (First(); !EOL(); Next())
+            {
+                var shape = GetCurrent();
+                if (shape.IsSelected())
+                {
+                    if (shape is CLine line)
+                        line.SaveOriginalPoints();
+                    else
+                        shape.SaveOriginalSizeAndPosition();
+                }
+            }
+        }
+
+
+
 
 
     }
