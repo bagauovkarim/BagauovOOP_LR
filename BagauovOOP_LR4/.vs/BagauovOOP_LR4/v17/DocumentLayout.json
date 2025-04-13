@@ -3,7 +3,11 @@
   "WorkspaceRootPath": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\bagauovoop_lr4\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "AbsoluteMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\bagauovoop_lr4\\shapes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|solutionrelative:bagauovoop_lr4\\shapes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|c:\\users\\karim\\source\\repos\\bagauovoop_lr4\\bagauovoop_lr4\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|solutionrelative:bagauovoop_lr4\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
@@ -17,10 +21,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\bagauovoop_lr4\\shapecontainer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|solutionrelative:bagauovoop_lr4\\shapecontainer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|c:\\users\\karim\\source\\repos\\bagauovoop_lr4\\bagauovoop_lr4\\shapes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2286101B-9030-432C-8D80-595AFD6F1ACF}|BagauovOOP_LR4\\BagauovOOP_LR4.csproj|solutionrelative:bagauovoop_lr4\\shapes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -30,8 +30,22 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 0,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Shapes.cs",
+              "DocumentMoniker": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\BagauovOOP_LR4\\Shapes.cs",
+              "RelativeDocumentMoniker": "BagauovOOP_LR4\\Shapes.cs",
+              "ToolTip": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\BagauovOOP_LR4\\Shapes.cs",
+              "RelativeToolTip": "BagauovOOP_LR4\\Shapes.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-08T16:45:48.045Z",
+              "IsPinned": true,
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{eefa5220-e298-11d0-8f78-00a0c9110057}"
@@ -43,45 +57,32 @@
             {
               "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "Shapes.cs",
-              "DocumentMoniker": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\BagauovOOP_LR4\\Shapes.cs",
-              "RelativeDocumentMoniker": "BagauovOOP_LR4\\Shapes.cs",
-              "ToolTip": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\BagauovOOP_LR4\\Shapes.cs",
-              "RelativeToolTip": "BagauovOOP_LR4\\Shapes.cs",
-              "ViewState": "AgIAANwCAAAAAAAAAAAIwO4CAAAyAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-08T16:45:48.045Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
               "Title": "ShapeContainer.cs",
               "DocumentMoniker": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\BagauovOOP_LR4\\ShapeContainer.cs",
               "RelativeDocumentMoniker": "BagauovOOP_LR4\\ShapeContainer.cs",
               "ToolTip": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\BagauovOOP_LR4\\ShapeContainer.cs",
               "RelativeToolTip": "BagauovOOP_LR4\\ShapeContainer.cs",
-              "ViewState": "AgIAAIUBAAAAAAAAAAA4wJgBAAAVAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAF8AAAAmAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-04-08T16:38:09.704Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "Form1.cs",
               "DocumentMoniker": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\BagauovOOP_LR4\\Form1.cs",
               "RelativeDocumentMoniker": "BagauovOOP_LR4\\Form1.cs",
               "ToolTip": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\BagauovOOP_LR4\\Form1.cs",
               "RelativeToolTip": "BagauovOOP_LR4\\Form1.cs",
-              "ViewState": "AgIAAIYAAAAAAAAAAAAAwHwAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAALcAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-03-23T13:46:49.514Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Form1.Designer.cs",
               "DocumentMoniker": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\BagauovOOP_LR4\\Form1.Designer.cs",
               "RelativeDocumentMoniker": "BagauovOOP_LR4\\Form1.Designer.cs",
@@ -94,7 +95,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Form1.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
               "DocumentMoniker": "C:\\Users\\Karim\\source\\repos\\BagauovOOP_LR4\\BagauovOOP_LR4\\Form1.cs",
               "RelativeDocumentMoniker": "BagauovOOP_LR4\\Form1.cs",

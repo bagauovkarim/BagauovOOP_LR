@@ -66,11 +66,6 @@ namespace BagauovOOP_LR4
             }
         }
 
-
-
-
-
-
         private void Form1_MouseClick(object sender, MouseEventArgs e)
         {
             if (wasChangingPosition)
@@ -124,11 +119,6 @@ namespace BagauovOOP_LR4
         }
 
 
-
-
-
-
-
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
             shapes.DrawAll(e.Graphics, RectangleSelection, selectionRectangle);
@@ -161,13 +151,6 @@ namespace BagauovOOP_LR4
                 }
             }
         }
-
-
-
-
-
-
-
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {

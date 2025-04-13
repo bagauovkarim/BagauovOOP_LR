@@ -10,17 +10,17 @@ namespace BagauovOOP_LR4
 {
     public interface IShape
     {
-        // Методы, которые должны быть реализованы в классе
+        // Методы, которые должны быть реализованы в классе, поддерживающем этот интерфейс
         void Draw(Graphics g); // метод для рисования фигуры
         bool Contains(Point point); // проверяет, содержится ли точка внутри фигуры
-        Rectangle GetBoundingBox(); // возвращает прямоугольную рамку, которая ограничивает фигуру
+        Rectangle GetBoundingBox(); // возвращает прямоугольник, который полностью ограничивает фигуру 
 
         void Select(); // метод для выделения фигуры рамкой
         void Deselect(); // методы снятия выделения с фигуры
         void Resize(Size newSize, Size canvasSize); // изменение размера фигуры, и проверка, чтобы она не выходила за пределы формы
         void Move(int dx, int dy, Size canvasSize); // перемещение фигуры по осям, проверка, чтобы она не выходила за границы
-        int GetResizeHandle(Point point); // возвращает индекс углового маркера для изменения размера
-        void SaveOriginalSizeAndPosition(); // сохраняет начальные размеры и положение
+        int GetResizeHandle(Point point); // возвращает индекс рукоятки для изменения размера
+        void SaveOriginalSize(); // сохраняет начальные размеры 
         Size GetOriginalSize(); // возвращает исходные размеры фигуры
         bool IsWithinBounds(Rectangle bounds, Size canvasSize); // // проверка, укладывается ли фигура в заданные границы
         void UpdatePosition(Size newCanvasSize); // обновление позиции фигуры с учетом нового размера формы
@@ -34,61 +34,72 @@ namespace BagauovOOP_LR4
         protected Size Size;
         protected Color FillColor;
         protected string Name = "Фигура";
-
         protected bool isSelected = false;
-
-
         protected Size _originalSize;
-        protected Point _originalPosition;
+    
 
         public Color GetFillColor() => FillColor;
-        public virtual void SetFillColor(Color _fillColor)
-        {
-            FillColor = _fillColor;
-        }
-
+        
         public Point GetPosition() => Position;
-        public virtual void SetPosition(Point _position)
-        {
-            Position = _position;
-        }
-
-        public virtual void SaveOriginalSizeAndPosition()
-        {
-            _originalSize = Size;
-            _originalPosition = Position;
-        }
-
+        
         public Size GetOriginalSize() => _originalSize;
-       
 
-        // Метод для выделения фигуры
-        public virtual void Select()
+        public bool IsSelected()
+        {
+            return isSelected;  // Возвращаем состояние флага выделения
+        }
+        public void Select()
         {
             isSelected = true;  // Устанавливаем флаг выделения
         }
 
         // Метод для снятия выделения
-        public virtual void Deselect()
+        public void Deselect()
         {
             isSelected = false;  // Снимаем выделение
-                                
-        }
 
-        // Метод для проверки, выделена ли фигура
-        public bool IsSelected()
+        }
+        public void SetFillColor(Color _fillColor)
         {
-            return isSelected;  // Возвращаем состояние флага выделения
+            FillColor = _fillColor;
+        }
+        public void SetPosition(Point _position)
+        {
+            Position = _position;
+        }
+
+        public void SaveOriginalSize()
+        {
+            _originalSize = Size;
+            
+        }
+
+        // Проверяет, не выходит ли фигура за пределы формы
+        public bool IsWithinBounds(Rectangle bounds, Size canvasSize)
+        {
+            return
+                bounds.Left >= 70 && // Левая граница прямоугольника не выходит за левый край панели инструментов
+                bounds.Right <= canvasSize.Width && // Правая граница прямоугольника не выходит за правый край формы
+                bounds.Top >= 0 && // Верхняя граница прямоугольника не выходит за верхний край формы
+                bounds.Bottom <= canvasSize.Height; // Нижняя граница прямоугольника не выходит за нижний край формы
         }
 
 
+        // Проверяет, пересекается ли фигура с заданным прямоугольником rect
+        public bool IntersectsWith(Rectangle rect) 
+        {
+            return GetBoundingBox().IntersectsWith(rect);
+        }
 
         // Абстрактные методы (должны быть реализованы в наследниках)
         public abstract void Draw(Graphics g);
         public abstract bool Contains(Point point);
         public abstract Rectangle GetBoundingBox();
 
+
         // Виртуальные методы (могут быть переопределены в наследниках)
+
+        // Метод Move отвечает за перемещение фигуры по форме
         public virtual void Move(int dx, int dy, Size canvasSize)
         {
             // Получаем новые границы фигуры
@@ -102,15 +113,8 @@ namespace BagauovOOP_LR4
             }
         }
 
-        // Метод проверки на выход за границы
-        public bool IsWithinBounds(Rectangle bounds, Size canvasSize)
-        {
-            return
-                bounds.Left >= 70 && // Левая граница прямоугольника не выходит за левый край канваса
-                bounds.Right <= canvasSize.Width && // Правая граница прямоугольника не выходит за правый край канваса
-                bounds.Top >= 0 && // Верхняя граница прямоугольника не выходит за верхний край канваса
-                bounds.Bottom <= canvasSize.Height; // Нижняя граница прямоугольника не выходит за нижний край канваса
-        }
+
+        // Метод Resizr отвечает за изменение размера фигуры 
         public virtual void Resize(Size newSize, Size canvasSize)
         {
             // Получаем существующую границу
@@ -126,11 +130,8 @@ namespace BagauovOOP_LR4
             }
         }
 
-        public bool IntersectsWith(Rectangle rect)
-        {
-            return GetBoundingBox().IntersectsWith(rect);
-        }
 
+        // Метод рисует выделение прямоугольником
         public virtual void DrawSelection(Graphics g)
         {
             if (isSelected)
@@ -141,7 +142,7 @@ namespace BagauovOOP_LR4
                     bounds.Inflate(5, 5);
                     g.DrawRectangle(pen, bounds);
 
-                    // Рисуем угловые маркеры
+                    // Рисуем рукоятки
                     int handleSize = 8;
                     Brush brush = Brushes.White;
 
@@ -164,14 +165,17 @@ namespace BagauovOOP_LR4
             }
         }
 
+
+        // Метод определяет, попал ли курсор мыши в одну из рукояток
         public virtual int GetResizeHandle(Point point)
         {
-            if (!isSelected) return -1;
+            if (!isSelected) 
+                return -1;
 
             var bounds = GetBoundingBox();
-            bounds.Inflate(5, 5); // То же самое, что и при отрисовке рамки
+            bounds.Inflate(5, 5); // Увеличиваем объект, чтобы корректно работать с рукоятками
 
-            int handleSize = 8; // Размер углового маркера
+            int handleSize = 8; // Размер рукоятки
             Rectangle[] handles = new Rectangle[4]
             {
                     // Левый верхний, правый верхний, правый нижний, левый нижний
@@ -189,9 +193,11 @@ namespace BagauovOOP_LR4
 
             return -1;
         }
+
+
+        // Проверка, что фигура выходит за пределы новой области
         public virtual void UpdatePosition(Size newCanvasSize)
         {
-            // Проверка, что фигура выходит за пределы новой области
             Rectangle boundingBox = GetBoundingBox();
 
             // Определяем, насколько необходимо сдвинуть фигуру
@@ -229,7 +235,7 @@ namespace BagauovOOP_LR4
 
         public override void Draw(Graphics g)
         {
-            // Черный контур (как в исходном коде)
+            // Черный контур 
             Pen pen = new Pen(Color.Black);
             Brush brush = new SolidBrush(FillColor);
 
@@ -326,7 +332,7 @@ namespace BagauovOOP_LR4
 
         }
 
-
+        // Векторное произведение векторов
         private float Sign(PointF p1, PointF p2, PointF p3)
         {
             return (p1.X - p3.X) * (p2.Y - p3.Y) - (p2.X - p3.X) * (p1.Y - p3.Y);
@@ -339,7 +345,7 @@ namespace BagauovOOP_LR4
             PointF B = _points[1];
             PointF C = _points[2];
 
-            // Вычисляем знаки для каждой стороны треугольника
+            // Используется Sign, чтобы определить, находится ли точка внутри треугольника
             float d1 = Sign(point, A, B);
             float d2 = Sign(point, B, C);
             float d3 = Sign(point, C, A);
@@ -351,7 +357,10 @@ namespace BagauovOOP_LR4
                 return true;
             }
             else
-                return false;
+            {
+                return false; //Иначе точка не в треугольнике
+            }
+                
 
 
         }
@@ -360,10 +369,10 @@ namespace BagauovOOP_LR4
 
         public override Rectangle GetBoundingBox()
         {
-            float minX = _points[0].X;
-            float minY = _points[0].Y;
-            float maxX = _points[0].X;
-            float maxY = _points[0].Y;
+            float minX = _points[0].X; // Минимальное значение X среди точек (самая левая)
+            float minY = _points[0].Y; // Минимальное значение Y среди точек (самая верхняя)
+            float maxX = _points[0].X; // Максимальное значение X среди точек (самая правая)
+            float maxY = _points[0].Y; // Максимальное значение Y среди точек (самая верхняя)
 
             foreach (var point in _points)
             {
@@ -378,8 +387,8 @@ namespace BagauovOOP_LR4
         }
         public override void Move(int dx, int dy, Size canvasSize)
         {
-            base.Move(dx, dy, canvasSize);         // смещаем Position
-            CalculatePoints();         // пересчитываем точки треугольника
+            base.Move(dx, dy, canvasSize);         
+            CalculatePoints(); // Пересчитываем точки треугольника
         }
 
         public override void Resize(Size newSize, Size canvasSize)
@@ -390,7 +399,7 @@ namespace BagauovOOP_LR4
 
         public override void UpdatePosition(Size newCanvasSize)
         {
-            base.UpdatePosition(newCanvasSize); // Вызываем родительский метод для обновления позиции
+            base.UpdatePosition(newCanvasSize); 
             CalculatePoints(); // Пересчитываем вершины после изменения позиции
         }
 
@@ -424,10 +433,10 @@ namespace BagauovOOP_LR4
 
         public override bool Contains(Point point)
         {
-            double a = Size.Width / 2.0;  // Радиус по X
-            double b = Size.Height / 2.0; // Радиус по Y
-            double centerX = Position.X;
-            double centerY = Position.Y;
+            double a = Size.Width / 2.0;  // Полуось по X
+            double b = Size.Height / 2.0; // Полуось по Y
+            double centerX = Position.X; // Центр эллипса по Х
+            double centerY = Position.Y; // Центр эллипса по Y 
 
             double normalizedX = (point.X - centerX) * (point.X - centerX) / (a * a);
             double normalizedY = (point.Y - centerY) * (point.Y - centerY) / (b * b);
@@ -459,7 +468,6 @@ namespace BagauovOOP_LR4
         {
             _startPoint = new Point(x - 50, y); // Начальная точка слева от центра
             _endPoint = new Point(x + 50, y);   // Конечная точка справа от центра
-            UpdatePositionAndSize();
             Name = "Линия";
             FillColor = Color.Black;
         }
@@ -481,16 +489,15 @@ namespace BagauovOOP_LR4
 
 
 
-        public void SetPoints(Point start, Point end)
+        public void SetPoints(Point start, Point end, Size canvasSize)
         {
             int buffer = 10; // Запас в 10 пикселей
 
-            if (IsWithinBounds(start, Application.OpenForms[0].ClientSize, buffer) &&
-                IsWithinBounds(end, Application.OpenForms[0].ClientSize, buffer))
+            if (IsWithinBounds(start, canvasSize, buffer) && IsWithinBounds(end, canvasSize, buffer))
             {
                 _startPoint = start;
                 _endPoint = end;
-                UpdatePositionAndSize(); // обновите позицию и размер
+                UpdatePositionAndSize(); // обновляем позицию и размер
             }
         }
 
@@ -521,31 +528,33 @@ namespace BagauovOOP_LR4
             return DistanceToLine(point, _startPoint, _endPoint) <= 3;
         }
 
+
+        // Вычисляет расстояние от точки до прямой, заданной двумя точками: начальной (lineStart) и конечной (lineEnd)
         private double DistanceToLine(Point point, Point lineStart, Point lineEnd)
         {
             // Вычисление расстояния от точки до линии
-            double A = point.X - lineStart.X;
-            double B = point.Y - lineStart.Y;
-            double C = lineEnd.X - lineStart.X;
-            double D = lineEnd.Y - lineStart.Y;
+            double A = point.X - lineStart.X; // Разница по оси X между точкой и началом линии
+            double B = point.Y - lineStart.Y; // Разница по оси Y между точкой и началом линии
+            double C = lineEnd.X - lineStart.X; // Разница по оси X между началом и концом линии
+            double D = lineEnd.Y - lineStart.Y; // Разница по оси Y между началом и концом линии
 
-            double dot = A * C + B * D;
-            double len_sq = C * C + D * D;
-            double param = (len_sq != 0) ? dot / len_sq : -1;
+            double dot = A * C + B * D; // Вычисление скалярного произведения
+            double len_sq = C * C + D * D; // Вычисление квадратов длины линии
+            double param = (len_sq != 0) ? dot / len_sq : -1; // Это параметр, который позволяет найти ближайшую точку на линии относительно точки point
 
-            double xx, yy;
+            double xx, yy; // Параметры для вычисления ближайшей точки на линии
 
-            if (param < 0)
+            if (param < 0) // Это означает, что проекция точки на линию лежит за пределами начальной точки линии, ближе к начальной точке (lineStart)
             {
                 xx = lineStart.X;
                 yy = lineStart.Y;
             }
-            else if (param > 1)
+            else if (param > 1) // Это означает, что проекция точки на линию лежит за пределами конечной точки линии, ближе к конечной точке (lineEnd)
             {
                 xx = lineEnd.X;
                 yy = lineEnd.Y;
             }
-            else
+            else // Это означает, что проекция точки на линию находится на самой линии, между начальной и конечной точками
             {
                 xx = lineStart.X + param * C;
                 yy = lineStart.Y + param * D;
@@ -599,11 +608,11 @@ namespace BagauovOOP_LR4
         {
             if (!isSelected) return;
 
-            // Рисуем маркеры на концах линии
+            // Рисуем рукоятки на концах линии
             int handleSize = 8;
             Brush brush = Brushes.White;
 
-            // Маркер начальной точки
+            // Рукоятка начальной точки
             g.FillRectangle(brush,
                 _startPoint.X - handleSize / 2,
                 _startPoint.Y - handleSize / 2,
@@ -615,7 +624,7 @@ namespace BagauovOOP_LR4
                 handleSize,
                 handleSize);
 
-            // Маркер конечной точки
+            // Рукоятка конечной точки
             g.FillRectangle(brush,
                 _endPoint.X - handleSize / 2,
                 _endPoint.Y - handleSize / 2,
@@ -710,8 +719,7 @@ namespace BagauovOOP_LR4
                 _endPoint.Y -= offset;
             }
 
-            // Обновляем позицию и размер
-            UpdatePositionAndSize();
+         
         }
 
     }

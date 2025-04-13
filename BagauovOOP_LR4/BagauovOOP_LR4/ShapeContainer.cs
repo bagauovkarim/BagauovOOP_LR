@@ -35,9 +35,10 @@ namespace BagauovOOP_LR4
         // Снятие выделения со всех фигур
         public void DeselectAll()
         {
-            for (int i = 0; i < shapes.Count; i++)
+            for (First(); !EOL(); Next())
             {
-                shapes[i].Deselect();
+                CShape shape = GetCurrent();
+                shape.Deselect();
             }
         }
 
@@ -56,7 +57,7 @@ namespace BagauovOOP_LR4
             return count;
         }
 
-        // Методы для ручной итерации (как в оригинальном CircleContainer)
+        // Методы для ручной итерации
         public void First()
         {
             currentIndex = 0;
@@ -76,28 +77,18 @@ namespace BagauovOOP_LR4
         {
             return shapes[currentIndex];
         }
-
-        // Метод выделяет фигуры, чьи границы пересекаются с прямоугольником
-        public void SelectShapesInRectangle(Rectangle rect)
+       
+        // Метод обновляет позиции всех фигур в соответствии с новым размером формы
+        public void UpdateAllPositions(Size newCanvasSize)
         {
             for (First(); !EOL(); Next())
             {
                 CShape shape = GetCurrent();
-                if (shape.GetBoundingBox().IntersectsWith(rect))
-                {
-                    shape.Select();  // Выделяем фигуру
-                }
-            }
-        }
-        // Метод обновляет позиции всех фигур в соответствии с новым размером холста
-        public void UpdateAllPositions(Size newCanvasSize)
-        {
-            foreach (CShape shape in shapes)
-            {
                 shape.UpdatePosition(newCanvasSize);
             }
         }
 
+        // Метод для создания фигур
         public void TryCreateShape(string selectedShapeType, Point location, Color color, Color lineColor, bool isLineColorChanged, Size canvasSize)
         {
             CShape newShape = null;
@@ -134,7 +125,7 @@ namespace BagauovOOP_LR4
                 Add(newShape);
         }
 
-
+        //Метод для рисования фигур и прямоугольника выделения
         public void DrawAll(Graphics g, bool rectangleSelection, Rectangle selectionRectangle)
         {
             // Рисуем все фигуры
@@ -156,7 +147,7 @@ namespace BagauovOOP_LR4
             }
         }
 
-
+        // Метод используется для того, чтобы при клике мышью на форме либо выделить фигуру, либо изменить ее цвет
         public bool TrySelectOrPaintShapeAt(Point clickPoint, string selectedShapeType, bool isColorMode, Color selectedColor, ref bool isLineColorChanged, ref Color currentLineColor)
         {
             for (First(); !EOL(); Next())
@@ -199,6 +190,7 @@ namespace BagauovOOP_LR4
             return false;
         }
 
+        // Метод используется для инициации изменения размера или перемещения выделенной фигуры на форме
         public bool TryStartResizeOrMove(MouseEventArgs e, bool ctrlPressed, bool isColorMode, string selectedShapeType, out bool isResizing, out int resizeHandle, out Point resizeStartPoint, out bool isChangingPosition, out Point changePositionStartPoint)
         {
             isResizing = false;
@@ -243,6 +235,7 @@ namespace BagauovOOP_LR4
             return false;
         }
 
+        //Метод  обрабатывает действия пользователя при перетаскивании мыши на форме
         public void ProcessMouseDrag(MouseEventArgs e, ref bool isResizing, ref int resizeHandle, Point resizeStartPoint, ref bool isChangingPosition, ref bool wasChangingPosition, ref Point changePositionStartPoint, ref bool rectangleSelection, bool ctrlPressed, Point selectionStartPoint, ref Rectangle selectionRectangle, Size canvasSize)
         {
             if (isResizing)
@@ -263,6 +256,7 @@ namespace BagauovOOP_LR4
             }
         }
 
+        // Метод FinalizeActionOnMouseUp выполняет действия, которые должны быть завершены после того, как пользователь отпустит кнопку мыши
         public void FinalizeActionOnMouseUp(MouseEventArgs e, ref bool isResizing, ref int resizeHandle, ref bool isChangingPosition, ref bool wasChangingPosition, ref bool rectangleSelection, bool ctrlPressed, bool isColorMode, Rectangle selectionRectangle, Color selectedColor)
         {
             if (e.Button == MouseButtons.Left)
@@ -291,6 +285,7 @@ namespace BagauovOOP_LR4
             }
         }
 
+        // Этот метод изменяет размер выбранных фигур в зависимости от текущего положения мыши и выбранной "ручки" изменения размера
         private void ResizeSelectedShapes(Point currentPoint, int resizeHandle, Point resizeStartPoint, Size canvasSize)
         {
             int dx = currentPoint.X - resizeStartPoint.X;
@@ -337,7 +332,7 @@ namespace BagauovOOP_LR4
                         }
                     }
 
-                    line.SetPoints(newStart, newEnd);
+                    line.SetPoints(newStart, newEnd, canvasSize);
                 }
                 else
                 {
@@ -369,6 +364,7 @@ namespace BagauovOOP_LR4
             }
         }
 
+        // Этот метод перемещает все выбранные фигуры на новое место, исходя из текущего положения мыши
         private void MoveSelectedShapes(Point currentPoint, ref Point startPoint, Size canvasSize, ref bool wasMoving)
         {
             wasMoving = true;
@@ -387,6 +383,7 @@ namespace BagauovOOP_LR4
             startPoint = currentPoint;
         }
 
+        // Этот метод обновляет прямоугольник выделения
         private void UpdateSelectionRectangle(Point current, Point start, ref Rectangle selectionRect)
         {
             int x = Math.Min(start.X, current.X);
@@ -397,6 +394,7 @@ namespace BagauovOOP_LR4
             selectionRect = new Rectangle(x, y, width, height);
         }
 
+        // Этот метод применяет выделение прямоугольником
         private void ApplySelectionRectangle(Rectangle selectionArea, bool isColorMode, Color selectedColor)
         {
             for (First(); !EOL(); Next())
@@ -421,6 +419,7 @@ namespace BagauovOOP_LR4
             }
         }
 
+        //Метод, чтобы изменение размера фигур происходило корректно
         private void SaveOriginalStates()
         {
             for (First(); !EOL(); Next())
@@ -431,7 +430,7 @@ namespace BagauovOOP_LR4
                     if (shape is CLine line)
                         line.SaveOriginalPoints();
                     else
-                        shape.SaveOriginalSizeAndPosition();
+                        shape.SaveOriginalSize();
                 }
             }
         }
