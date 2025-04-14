@@ -21,7 +21,7 @@ namespace BagauovOOP_LR4
         void Move(int dx, int dy, Size canvasSize); // перемещение фигуры по осям, проверка, чтобы она не выходила за границы
         int GetResizeHandle(Point point); // возвращает индекс рукоятки для изменения размера
         void SaveOriginalSize(); // сохраняет начальные размеры 
-        Size GetOriginalSize(); // возвращает исходные размеры фигуры
+        Size GetSize(); // возвращает исходные размеры фигуры
         bool IsWithinBounds(Rectangle bounds, Size canvasSize); // // проверка, укладывается ли фигура в заданные границы
         void UpdatePosition(Size newCanvasSize); // обновление позиции фигуры с учетом нового размера формы
     }
@@ -42,8 +42,9 @@ namespace BagauovOOP_LR4
         
         public Point GetPosition() => Position;
         
-        public Size GetOriginalSize() => _originalSize;
+        public Size GetSize() => Size;
 
+        public Size GetOriginalSize() => _originalSize;
         public bool IsSelected()
         {
             return isSelected;  // Возвращаем состояние флага выделения
@@ -73,6 +74,7 @@ namespace BagauovOOP_LR4
             _originalSize = Size;
             
         }
+
 
         // Проверяет, не выходит ли фигура за пределы формы
         public bool IsWithinBounds(Rectangle bounds, Size canvasSize)
@@ -199,25 +201,29 @@ namespace BagauovOOP_LR4
         public virtual void UpdatePosition(Size newCanvasSize)
         {
             Rectangle boundingBox = GetBoundingBox();
+            int dx = 0;
+            int dy = 0;
 
-            // Определяем, насколько необходимо сдвинуть фигуру
             if (boundingBox.Right > newCanvasSize.Width)
             {
-                Position = new Point(Position.X - (boundingBox.Right - newCanvasSize.Width), Position.Y);
+                dx = -(boundingBox.Right - newCanvasSize.Width);
             }
-            if (boundingBox.Left < 0)
+            if (boundingBox.Left < 70)
             {
-                Position = new Point(Position.X - boundingBox.Left, Position.Y);
+                dx = 70 - boundingBox.Left;
             }
             if (boundingBox.Bottom > newCanvasSize.Height)
             {
-                Position = new Point(Position.X, Position.Y - (boundingBox.Bottom - newCanvasSize.Height));
+                dy = -(boundingBox.Bottom - newCanvasSize.Height);
             }
             if (boundingBox.Top < 0)
             {
-                Position = new Point(Position.X, Position.Y - boundingBox.Top);
+                dy = -boundingBox.Top;
             }
+
+            Position = new Point(Position.X + dx, Position.Y + dy);
         }
+
 
 
     }
@@ -368,21 +374,9 @@ namespace BagauovOOP_LR4
 
 
         public override Rectangle GetBoundingBox()
-        {
-            float minX = _points[0].X; // Минимальное значение X среди точек (самая левая)
-            float minY = _points[0].Y; // Минимальное значение Y среди точек (самая верхняя)
-            float maxX = _points[0].X; // Максимальное значение X среди точек (самая правая)
-            float maxY = _points[0].Y; // Максимальное значение Y среди точек (самая верхняя)
+        { 
 
-            foreach (var point in _points)
-            {
-                minX = Math.Min(minX, point.X);
-                minY = Math.Min(minY, point.Y);
-                maxX = Math.Max(maxX, point.X);
-                maxY = Math.Max(maxY, point.Y);
-            }
-
-            return new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
+            return new Rectangle(Position.X - Size.Width / 2, Position.Y - Size.Height / 2, Size.Width + 1, Size.Height + 1);
 
         }
         public override void Move(int dx, int dy, Size canvasSize)
@@ -393,9 +387,26 @@ namespace BagauovOOP_LR4
 
         public override void Resize(Size newSize, Size canvasSize)
         {
-            base.Resize(newSize, canvasSize);
-            CalculatePoints(); // Пересчитываем точки треугольника при изменении размера
+            // Получаем текущие границы треугольника
+            var newBoundingBox = new Rectangle(
+                Position.X - newSize.Width / 2 + 1,
+                Position.Y - newSize.Height / 2,
+                newSize.Width + 1,
+                newSize.Height + 1
+            );
+
+            // Изменяем размер
+            newBoundingBox.Size = newSize;
+
+            // Проверка, чтобы убедиться, что фигура не выходит за пределы области формы
+            if (IsWithinBounds(newBoundingBox, canvasSize))
+            {
+                CalculatePoints();
+                Size = newSize; // Обновляем размер эллипса
+            }
         }
+
+
 
         public override void UpdatePosition(Size newCanvasSize)
         {
@@ -451,10 +462,31 @@ namespace BagauovOOP_LR4
 
         public override Rectangle GetBoundingBox()
         {
+
             int width = Size.Width;
             int height = Size.Height;
-            return new Rectangle(Position.X - width / 2, Position.Y - height / 2, width, height);
+            return new Rectangle(Position.X - width / 2, Position.Y - height / 2, width + 1, height + 1);
         }
+
+        public override void Resize(Size newSize, Size canvasSize)
+        {
+            // Новый размер эллипса, просто обновляем его ширину и высоту
+            Size newEllipseSize = new Size(newSize.Width, newSize.Height);
+
+            // Новый bounding box для эллипса
+            Rectangle newBoundingBox = new Rectangle(
+                Position.X - newEllipseSize.Width / 2,
+                Position.Y - newEllipseSize.Height / 2,
+                newEllipseSize.Width,
+                newEllipseSize.Height);
+
+            // Проверка, чтобы убедиться, что фигура не выходит за пределы области холста
+            if (IsWithinBounds(newBoundingBox, canvasSize))
+            {
+                Size = newEllipseSize; // Обновляем размер эллипса
+            }
+        }
+
 
 
     }
@@ -472,8 +504,8 @@ namespace BagauovOOP_LR4
             FillColor = Color.Black;
         }
 
-        public Point StartPoint => _startPoint;
-        public Point EndPoint => _endPoint;
+        public Point GetStartPoint => _startPoint;
+        public Point GetEndPoint => _endPoint;
 
         private Point _originalStart;
         private Point _originalEnd;
@@ -493,15 +525,54 @@ namespace BagauovOOP_LR4
         {
             int buffer = 10; // Запас в 10 пикселей
 
-            if (IsWithinBounds(start, canvasSize, buffer) && IsWithinBounds(end, canvasSize, buffer))
+            // Проверяем, не выходит ли начальная точка за границу канваса с запасом
+            bool isStartWithinBounds = IsWithinBounds(start, canvasSize, buffer);
+            // Проверяем, не выходит ли конечная точка за границу канваса с запасом
+            bool isEndWithinBounds = IsWithinBounds(end, canvasSize, buffer);
+
+            // Разрешаем изменить точки только если обе точки находятся в пределах границ канваса
+            if (isStartWithinBounds && isEndWithinBounds)
             {
                 _startPoint = start;
                 _endPoint = end;
-                UpdatePositionAndSize(); // обновляем позицию и размер
+                UpdatePositionAndSizeFromPoints();
+            }
+            else
+            {
+                // Если хотя бы одна точка выходит за пределы, ограничиваем её
+                if (!isStartWithinBounds)
+                {
+                    // Если начальная точка выходит за границу, ограничиваем её в пределах канваса
+                    start = LimitPointWithinBounds(start, canvasSize);
+                }
+
+                if (!isEndWithinBounds)
+                {
+                    // Если конечная точка выходит за границу, ограничиваем её в пределах канваса
+                    end = LimitPointWithinBounds(end, canvasSize);
+                }
+
+                _startPoint = start;
+                _endPoint = end;
+                UpdatePositionAndSizeFromPoints();
             }
         }
 
-        private void UpdatePositionAndSize()
+        private Point LimitPointWithinBounds(Point point, Size canvasSize)
+        {
+            // Ограничиваем точку в пределах канваса с учётом буфера
+            int buffer = 10;
+
+            // Ограничиваем по X и Y
+            int x = Math.Max(buffer + 70, Math.Min(point.X, canvasSize.Width - buffer));
+            int y = Math.Max(buffer, Math.Min(point.Y, canvasSize.Height - buffer));
+
+            return new Point(x, y);
+        }
+
+
+
+        private void UpdatePositionAndSizeFromPoints()
         {
             // Центр линии - середина между точками
             Position = new Point(
@@ -567,13 +638,14 @@ namespace BagauovOOP_LR4
 
         public override Rectangle GetBoundingBox()
         {
-            int left = Math.Min(_startPoint.X, _endPoint.X);
-            int top = Math.Min(_startPoint.Y, _endPoint.Y);
-            int right = Math.Max(_startPoint.X, _endPoint.X);
-            int bottom = Math.Max(_startPoint.Y, _endPoint.Y);
+            int left = Math.Min(GetStartPoint.X, GetEndPoint.X);
+            int top = Math.Min(GetStartPoint.Y, GetEndPoint.Y);
+            int width = Math.Abs(GetEndPoint.X - GetStartPoint.X);
+            int height = Math.Abs(GetEndPoint.Y - GetStartPoint.Y);
 
-            return new Rectangle(left, top, right - left, bottom - top);
+            return new Rectangle(left, top, width, height);
         }
+
 
         public override int GetResizeHandle(Point point)
         {
@@ -639,21 +711,30 @@ namespace BagauovOOP_LR4
 
         public override void Move(int dx, int dy, Size canvasSize)
         {
-            // Получаем новые координаты начальной и конечной точки
             Point newStart = new Point(_startPoint.X + dx, _startPoint.Y + dy);
             Point newEnd = new Point(_endPoint.X + dx, _endPoint.Y + dy);
 
-            int buffer = 10; // Запас в 10 пикселей
+            int buffer = 10;
 
-            // Проверяем, находятся ли новые точки в пределах области c запасом
-            if (IsWithinBounds(newStart, canvasSize, buffer) && IsWithinBounds(newEnd, canvasSize, buffer))
+            bool wasOutOfBounds =
+                !IsWithinBounds(_startPoint, canvasSize, buffer) ||
+                !IsWithinBounds(_endPoint, canvasSize, buffer);
+
+            bool newPointsWithinBounds =
+                IsWithinBounds(newStart, canvasSize, buffer) &&
+                IsWithinBounds(newEnd, canvasSize, buffer);
+
+            // Разрешаем перемещение, если:
+            // 1. Новые точки внутри границ (обычный случай)
+            // 2. Или фигура была вне границ и сдвигается внутрь
+            if (newPointsWithinBounds || wasOutOfBounds)
             {
-                // Обновляем только если обе точки в пределах границ
                 _startPoint = newStart;
                 _endPoint = newEnd;
-                UpdatePositionAndSize(); // Обновите размер и позицию, если это необходимо
+                UpdatePositionAndSizeFromPoints();
             }
         }
+
 
         // Метод проверки, что точка находится в пределах области
         private bool IsWithinBounds(Point point, Size canvasSize, int buffer)
@@ -665,62 +746,23 @@ namespace BagauovOOP_LR4
 
         public override void UpdatePosition(Size newCanvasSize)
         {
-            // Проверяем, выходит ли начальная точка за границы
-            if (_startPoint.X < 0)
-            {
-                int offset = -_startPoint.X;
-                _startPoint.X += offset;
-                _endPoint.X += offset;
-            }
-            else if (_startPoint.X > newCanvasSize.Width)
-            {
-                int offset = _startPoint.X - newCanvasSize.Width;
-                _startPoint.X -= offset;
-                _endPoint.X -= offset;
-            }
+            Rectangle boundingBox = GetBoundingBox();
+            int dx = 0, dy = 0;
 
-            if (_startPoint.Y < 0)
-            {
-                int offset = -_startPoint.Y;
-                _startPoint.Y += offset;
-                _endPoint.Y += offset;
-            }
-            else if (_startPoint.Y > newCanvasSize.Height)
-            {
-                int offset = _startPoint.Y - newCanvasSize.Height;
-                _startPoint.Y -= offset;
-                _endPoint.Y -= offset;
-            }
+            if (boundingBox.Right > newCanvasSize.Width)
+                dx = -(boundingBox.Right - newCanvasSize.Width);
+            if (boundingBox.Left < 70)
+                dx = 70 - boundingBox.Left;
+            if (boundingBox.Bottom > newCanvasSize.Height)
+                dy = -(boundingBox.Bottom - newCanvasSize.Height);
+            if (boundingBox.Top < 0)
+                dy = -boundingBox.Top;
 
-            // Проверяем, выходит ли конечная точка за границы
-            if (_endPoint.X < 0)
-            {
-                int offset = -_endPoint.X;
-                _startPoint.X += offset;
-                _endPoint.X += offset;
-            }
-            else if (_endPoint.X > newCanvasSize.Width)
-            {
-                int offset = _endPoint.X - newCanvasSize.Width;
-                _startPoint.X -= offset;
-                _endPoint.X -= offset;
-            }
-
-            if (_endPoint.Y < 0)
-            {
-                int offset = -_endPoint.Y;
-                _startPoint.Y += offset;
-                _endPoint.Y += offset;
-            }
-            else if (_endPoint.Y > newCanvasSize.Height)
-            {
-                int offset = _endPoint.Y - newCanvasSize.Height;
-                _startPoint.Y -= offset;
-                _endPoint.Y -= offset;
-            }
-
-         
+            // Сдвигаем обе точки линии
+            _startPoint = new Point(GetStartPoint.X + dx, GetStartPoint.Y + dy);
+            _endPoint = new Point(GetEndPoint.X + dx, GetEndPoint.Y + dy);
         }
+
 
     }
 

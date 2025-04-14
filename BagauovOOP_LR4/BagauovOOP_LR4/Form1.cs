@@ -21,7 +21,6 @@ namespace BagauovOOP_LR4
         private bool isLineColorChanged = false;
         private bool isColorMode = false;
         private bool ctrlPressed = false;
-        private Color currentColorBeforeCursor;
         
         private bool RectangleSelection = false;  // Флаг для отслеживания процесса выделения
         private Point selectionStartPoint; // Начальная точка выделения
@@ -32,7 +31,7 @@ namespace BagauovOOP_LR4
         private bool isResizing = false;
         private Point resizeStartPoint;
         private int resizeHandle = -1;
-        
+   
 
 
         public Form1()
@@ -131,7 +130,7 @@ namespace BagauovOOP_LR4
             this.Cursor = Cursors.Default;
             isColorMode = false;  
             selectedShapeType = "Курсор";
-            currentColorBeforeCursor = selectedColor;  // Сохраняем текущий цвет для курсора
+           
                                                       
         }
 
