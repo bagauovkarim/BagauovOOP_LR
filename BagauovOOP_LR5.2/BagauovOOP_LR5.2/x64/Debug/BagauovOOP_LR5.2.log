@@ -1,0 +1,6 @@
+﻿  BagauovOOP_LR5.2.cpp
+C:\Users\Karim\source\repos\BagauovOOP_LR5.2\BagauovOOP_LR5.2\BagauovOOP_LR5.2.cpp(188,9): warning C4129: "s": нераспознанная escape-последовательность символов
+C:\Users\Karim\source\repos\BagauovOOP_LR5.2\BagauovOOP_LR5.2\BagauovOOP_LR5.2.cpp(63,1): warning C4172: возвращаемый адрес локальной переменной или временного : base
+C:\Users\Karim\source\repos\BagauovOOP_LR5.2\BagauovOOP_LR5.2\BagauovOOP_LR5.2.cpp(67,1): warning C4172: возвращаемый адрес локальной переменной или временного : base
+C:\Users\Karim\source\repos\BagauovOOP_LR5.2\BagauovOOP_LR5.2\BagauovOOP_LR5.2.cpp(102,1): warning C4172: возвращаемый адрес локальной переменной или временного : p
+  BagauovOOP_LR5.2.vcxproj -> C:\Users\Karim\source\repos\BagauovOOP_LR5.2\x64\Debug\BagauovOOP_LR5.2.exe
